@@ -329,7 +329,7 @@ export default function LandingPage() {
                                     <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
                                         <CheckCircle className="w-3 h-3 text-violet-400" />
                                     </div>
-                                    <strong>120 Créditos mensais</strong>
+                                    <strong>120 Créditos mensais*</strong>
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
                                     <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
