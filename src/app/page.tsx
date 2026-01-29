@@ -362,6 +362,12 @@ export default function LandingPage() {
                         </div>
 
                     </div>
+
+                    <div className="mt-12 text-center text-slate-500 text-sm max-w-2xl mx-auto">
+                        <p>* Os créditos são renovados mensalmente na data do pagamento e não são cumulativos.
+                            Caso não sejam utilizados dentro do período de 30 dias, eles expiram automaticamente.</p>
+                        <p className="mt-2">O cancelamento pode ser feito a qualquer momento sem multa.</p>
+                    </div>
                 </div>
             </section>
 
