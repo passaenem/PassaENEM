@@ -33,7 +33,7 @@ export function CreditWarning({ open, onClose, currentCredits, requiredCredits, 
                         <br /><br />
                         {plan === 'free' ? (
                             <span>
-                                Usuários do plano <strong>FREE</strong> têm um limite de 20 questões mensais.
+                                Usuários do plano <strong>FREE</strong> têm um limite de 100 questões mensais.
                                 Para continuar gerando provas ilimitadas e ter acesso a recursos exclusivos, faça o upgrade para o plano <strong>PRO</strong>.
                             </span>
                         ) : (
