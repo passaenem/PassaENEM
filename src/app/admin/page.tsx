@@ -90,6 +90,11 @@ export default function AdminDashboardPage() {
             const amount = parseInt(creditAmount);
             const newTotal = (selectedUser.credits || 0) + amount;
 
+            if (!supabase) {
+                alert("Erro: Conexão com Supabase não inicializada.");
+                return;
+            }
+
             const { error } = await supabase
                 .from('profiles')
                 .update({ credits: newTotal })
