@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
                             id: 'pro-monthly',
                             title: 'PassaENEM Pro - Mensal',
                             quantity: 1,
-                            unit_price: 49.90,
+                            unit_price: 49.9, // Mercado Pago accepts decimals for unit_price
                             currency_id: 'BRL',
                         },
                     ],
