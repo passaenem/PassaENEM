@@ -35,7 +35,13 @@ export default function ConcursoGeneratorPage() {
         e.preventDefault();
         const cost = Number(formData.quantidade);
 
-        // Check credits
+        // 1. Validate Max Questions (100)
+        if (cost > 100) {
+            setError("O limite máximo é de 100 questões por prova.");
+            return;
+        }
+
+        // 2. Check credits
         if (supabase) {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
