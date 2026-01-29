@@ -22,6 +22,9 @@ export async function POST(req: NextRequest) {
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
+        console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
+        console.log("Using appUrl:", appUrl);
+
         // Mercado Pago Production credentials restrict localhost in subscriptions.
         // We use a fallback for local testing of the flow.
         const isLocalhost = appUrl.includes('localhost');
@@ -32,6 +35,8 @@ export async function POST(req: NextRequest) {
             failure: `${appUrl}/?payment=failure`,
             pending: `${appUrl}/?payment=pending`,
         };
+
+        console.log("Back URLs:", backUrls);
 
         // Specific back_url for subscriptions (must be valid HTTPS in Prod)
         const subscriptionBackUrl = isLocalhost ? fallbackUrl : backUrls.success;
