@@ -21,7 +21,7 @@ export async function checkAndResetCredits(userId: string) {
 
     const { data: profile, error } = await supabase
         .from('profiles')
-        .select('plan_type, credits, last_reset')
+        .select('plan_type, credits, last_reset, plan_end_date')
         .eq('id', userId)
         .single();
 
