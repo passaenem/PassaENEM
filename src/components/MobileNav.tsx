@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X, LogIn, LogOut } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X, LogIn, LogOut, ShieldAlert, Users, CreditCard } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,49 @@ export function MobileNav() {
                                 Criar Desafio (Admin)
                             </Link>
                         )}
+                        {user && user.id === ADMIN_ID && (
+                            <>
+                                <Link
+                                    href="/admin"
+                                    onClick={() => setOpen(false)}
+                                    className={cn(
+                                        "flex items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
+                                        pathname === "/admin"
+                                            ? "bg-red-500/10 text-red-500"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    )}
+                                >
+                                    <ShieldAlert className={cn("mr-3 h-5 w-5", pathname === "/admin" ? "text-red-500" : "text-muted-foreground")} />
+                                    Admin Console
+                                </Link>
+                                <Link
+                                    href="/admin/users"
+                                    onClick={() => setOpen(false)}
+                                    className={cn(
+                                        "flex items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
+                                        pathname === "/admin/users"
+                                            ? "bg-blue-500/10 text-blue-500"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    )}
+                                >
+                                    <Users className={cn("mr-3 h-5 w-5", pathname === "/admin/users" ? "text-blue-500" : "text-muted-foreground")} />
+                                    Gestão de Usuários
+                                </Link>
+                                <Link
+                                    href="/admin/subscriptions"
+                                    onClick={() => setOpen(false)}
+                                    className={cn(
+                                        "flex items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
+                                        pathname === "/admin/subscriptions"
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    )}
+                                >
+                                    <CreditCard className={cn("mr-3 h-5 w-5", pathname === "/admin/subscriptions" ? "text-primary" : "text-muted-foreground")} />
+                                    Assinaturas
+                                </Link>
+                            </>
+                        )}
                         <div className="pt-4 border-t border-slate-800 mt-4">
                             {user ? (
                                 <div className="flex items-center justify-between px-3">
@@ -114,7 +157,8 @@ export function MobileNav() {
                         </div>
                     </nav>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

@@ -56,6 +56,12 @@ export default function AdminDashboardPage() {
                 // AI Usage
                 // Assuming exams have 'questions' array. 
                 const totalQuestions = exams?.reduce((acc, curr) => acc + (curr.questions?.length || 0), 0) || 0;
+
+                // Calculate Today Generated (Exams)
+                const todayV = new Date();
+                todayV.setHours(0, 0, 0, 0);
+                const todayGenerated = exams?.filter(e => new Date(e.created_at) >= todayV).length || 0;
+
                 const creditsConsumed = totalQuestions; // 1 credit per question approx
                 const aiCost = totalQuestions * 0.0005; // Estimate $0.0005 per request
 
@@ -108,7 +114,7 @@ export default function AdminDashboardPage() {
                     ai: {
                         usageByType,
                         topUsers,
-                        metrics: { totalGenerated: totalQuestions, todayGenerated: 124, avgPerUser: Math.round(totalQuestions / (totalUsers || 1)) }
+                        metrics: { totalGenerated: totalQuestions, todayGenerated: todayGenerated, avgPerUser: Math.round(totalQuestions / (totalUsers || 1)) }
                     },
                     challenges: {
                         activeChallenges: challenges?.length || 0,

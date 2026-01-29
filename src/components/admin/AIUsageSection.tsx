@@ -21,29 +21,31 @@ export function AIUsageSection({ data }: { data: AIUsageProps }) {
                 <CardHeader>
                     <CardTitle className="text-lg font-semibold text-white">Consumo de IA por Tipo</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data.usageByType} layout="vertical">
-                            <XAxis type="number" stroke="#64748b" hide />
-                            <YAxis type="category" dataKey="name" stroke="#94a3b8" width={100} />
-                            <Tooltip
-                                cursor={{ fill: '#1e293b' }}
-                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f1f5f9' }}
-                            />
-                            <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]}>
-                                {data.usageByType.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                <CardContent>
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={data.usageByType} layout="vertical">
+                                <XAxis type="number" stroke="#64748b" hide />
+                                <YAxis type="category" dataKey="name" stroke="#94a3b8" width={100} />
+                                <Tooltip
+                                    cursor={{ fill: '#1e293b' }}
+                                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f1f5f9' }}
+                                />
+                                <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]}>
+                                    {data.usageByType.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                     <div className="flex justify-around mt-4 text-sm text-slate-400">
                         <div className="text-center">
                             <span className="block text-2xl font-bold text-white">{data.metrics.todayGenerated}</span>
                             Geradas Hoje
                         </div>
                         <div className="text-center">
-                            <span className="block text-2xl font-bold text-white">{data.metrics.avgPerUser}</span>
+                            <span className="block text-2xl font-bold text-white">{data.metrics?.avgPerUser ?? 0}</span>
                             Média/Usuário
                         </div>
                     </div>
