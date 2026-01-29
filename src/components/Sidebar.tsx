@@ -196,9 +196,9 @@ export function Sidebar() {
                             {userCredits.plan === 'pro' ? 'Plano PRO' : 'Plano Grátis'}
                         </h4>
                         {userCredits.plan === 'free' && (
-                            <Link href="/#pricing" className="text-[10px] text-green-400 hover:text-green-300 font-bold uppercase tracking-wider">
+                            <button onClick={() => window.location.href = '/#pricing'} className="text-[10px] text-green-400 hover:text-green-300 font-bold uppercase tracking-wider bg-transparent border-0 p-0 cursor-pointer">
                                 Upgrade
-                            </Link>
+                            </button>
                         )}
                     </div>
 

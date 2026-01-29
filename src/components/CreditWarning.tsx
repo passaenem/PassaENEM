@@ -50,7 +50,10 @@ export function CreditWarning({ open, onClose, currentCredits, requiredCredits, 
                     </AlertDialogCancel>
                     {plan === 'free' && (
                         <AlertDialogAction
-                            onClick={() => window.location.href = '/#pricing'}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                window.location.href = '/#pricing';
+                            }}
                             className="bg-gradient-to-r from-violet-600 to-green-500 text-white hover:from-violet-700 hover:to-green-600 border-0"
                         >
                             Ver Planos Premium
