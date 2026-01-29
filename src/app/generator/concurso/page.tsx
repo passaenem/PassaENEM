@@ -63,8 +63,11 @@ export default function ConcursoGeneratorPage() {
             setError(null);
 
             // Get User ID for Backend (Validation)
-            const { data: { user } } = await supabase.auth.getUser();
-            const userId = user?.id;
+            let userId = null;
+            if (supabase) {
+                const { data: { user } } = await supabase.auth.getUser();
+                userId = user?.id;
+            }
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
