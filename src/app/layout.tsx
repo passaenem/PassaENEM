@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   description: "Gerador de questões para ENEM e Concursos via IA",
 };
 
+import { MobileNav } from "@/components/MobileNav";
+
+// ... existing imports
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,9 +22,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="dark">
       <body className={inter.className}>
-        <div className="flex min-h-screen bg-background text-foreground">
+        <div className="flex min-h-screen flex-col md:flex-row bg-background text-foreground">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto p-8">
+          <MobileNav />
+          <main className="flex-1 overflow-y-auto p-4 md:p-8">
             {children}
           </main>
         </div>

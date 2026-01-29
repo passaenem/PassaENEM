@@ -159,7 +159,7 @@ export default function ChallengesPage() {
 
                 {/* FINALIZADOS */}
                 <TabsContent value="finished">
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                         {finishedChallenges.map((challenge) => (
                             <Card key={challenge.id} className="flex flex-col border-slate-800 bg-slate-900/20 grayscale hover:grayscale-0 transition-all cursor-pointer">
                                 <CardHeader>

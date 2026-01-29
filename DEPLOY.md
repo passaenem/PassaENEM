@@ -8,12 +8,12 @@ Para ativar isso, você precisa fazer uma configuração única na Vercel:
 
 1.  **Crie uma conta na Vercel**
     *   Acesse [vercel.com](https://vercel.com/signup)
-    *   Escolha **"Continue with GitHub"** e faça login com sua conta `LeandroNunes22`.
+    *   Escolha **"Continue with GitHub"** e faça login com sua conta `passaenem`.
 
 2.  **Importe o Projeto**
     *   No painel da Vercel, clique em **"Add New..."** -> **"Project"**.
     *   Você verá uma lista dos seus repositórios do GitHub.
-    *   Encontre o **`PassaENEM`** e clique em **"Import"**.
+    *   Encontre o **`passaenem/PassaENEM`** e clique em **"Import"**.
 
 3.  **Configuração (Automática)**
     *   A Vercel vai detectar que é um projeto Next.js.
