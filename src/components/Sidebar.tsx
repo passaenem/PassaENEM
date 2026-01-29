@@ -138,7 +138,7 @@ export function Sidebar() {
                             href="/admin"
                             className={cn(
                                 "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                                pathname?.startsWith("/admin") ? "bg-accent text-accent-foreground" : "text-slate-400"
+                                pathname === "/admin" ? "bg-accent text-accent-foreground" : "text-slate-400"
                             )}
                         >
                             <ShieldAlert className="mr-2 h-4 w-4 text-red-500" />
