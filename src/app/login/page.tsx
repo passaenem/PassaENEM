@@ -23,7 +23,7 @@ export default function LoginPage() {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
+                    redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 },
             });
             if (error) throw error;
@@ -51,9 +51,9 @@ export default function LoginPage() {
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     )}
-                    
-                    <Button 
-                        variant="outline" 
+
+                    <Button
+                        variant="outline"
                         className="w-full flex items-center justify-center gap-2 h-12 text-base font-medium hover:bg-slate-800 border-slate-700"
                         onClick={handleLogin}
                         disabled={loading}

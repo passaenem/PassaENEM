@@ -55,7 +55,8 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    const { data: { session } } = await supabase.auth.getSession()
+    // IMPORTANT: use getUser to validate validity of the token
+    const { data: { user } } = await supabase.auth.getUser()
 
     // Guard Clauses
     const isProtectedPath =
@@ -67,11 +68,11 @@ export async function middleware(request: NextRequest) {
 
     const isAuthPath = request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/login';
 
-    if (!session && isProtectedPath) {
+    if (!user && isProtectedPath) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
-    if (session && isAuthPath) {
+    if (user && isAuthPath) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
