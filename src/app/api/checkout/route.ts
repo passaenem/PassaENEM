@@ -91,6 +91,9 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("Mercado Pago Error:", error);
-        return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+        console.error("Error details:", JSON.stringify(error, null, 2));
+        return NextResponse.json({
+            error: error.message || error.cause?.message || "Invalid request data"
+        }, { status: 500 });
     }
 }
