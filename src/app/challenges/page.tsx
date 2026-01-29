@@ -18,6 +18,10 @@ export default function ChallengesPage() {
     const [myResults, setMyResults] = useState<any[]>([]); // Store user's exam results
     const [user, setUser] = useState<any>(null);
 
+    const [userPlan, setUserPlan] = useState('free');
+    const [unclaimedReward, setUnclaimedReward] = useState<any>(null);
+    const [whatsappInput, setWhatsappInput] = useState("");
+
     // Initial Data Load
     useEffect(() => {
         const loadData = async () => {
@@ -27,7 +31,43 @@ export default function ChallengesPage() {
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
 
-            // 2. Fetch ALL Challenges (Active & Finished)
+            // 2. Fetch User Plan & Profile
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('plan_type')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) setUserPlan(profile.plan_type || 'free');
+
+                // Fetch My Results (Performance History)
+                const { data: resultsData } = await supabase
+                    .from('exam_results')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .ilike('exam_title', 'Desafio:%') // Only fetch Challenge results
+                    .order('created_at', { ascending: false });
+
+                if (resultsData) {
+                    setMyResults(resultsData);
+                }
+
+                // Check for Unclaimed Rewards
+                const { data: rewardData } = await supabase
+                    .from('rewards')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('status', 'unclaimed')
+                    .limit(1)
+                    .single();
+
+                if (rewardData) {
+                    setUnclaimedReward(rewardData);
+                }
+            }
+
+            // 3. Fetch ALL Challenges (Active & Finished)
             const { data: challengesData } = await supabase
                 .from('challenges')
                 .select('*')
@@ -84,20 +124,6 @@ export default function ChallengesPage() {
 
                 setDbChallenges(challengesWithRanking);
             }
-
-            // 3. Fetch My Results (Performance History)
-            if (user) {
-                const { data: resultsData } = await supabase
-                    .from('exam_results')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .ilike('exam_title', 'Desafio:%') // Only fetch Challenge results
-                    .order('created_at', { ascending: false });
-
-                if (resultsData) {
-                    setMyResults(resultsData);
-                }
-            }
         };
 
         loadData();
@@ -115,16 +141,41 @@ export default function ChallengesPage() {
         }
     };
 
-    const handleFinishChallenge = async (id: string) => {
-        if (!confirm("Tem certeza que deseja FINALIZAR este desafio agora? Ele sairá da lista de ativos.")) return;
+    const handleFinishChallenge = async (id: string, challengeTitle: string) => {
+        if (!confirm("Tem certeza que deseja FINALIZAR este desafio agora? Ele sairá da lista de ativos e os prêmios serão gerados.")) return;
+
         if (supabase) {
+            // 1. Calculate Winners (Top 3)
+            const { data: topResults } = await supabase
+                .from('exam_results')
+                .select('user_id, correct_answers, created_at')
+                .eq('exam_title', `Desafio: ${challengeTitle}`)
+                .order('correct_answers', { ascending: false }) // Score
+                .order('created_at', { ascending: true }) // Time tie-breaker
+                .limit(3);
+
+            // 2. Insert Rewards
+            if (topResults && topResults.length > 0) {
+                const rewardsToInsert = topResults.map((r, index) => ({
+                    user_id: r.user_id,
+                    challenge_id: id,
+                    position: index + 1,
+                    prize_amount: index === 0 ? "R$ 50,00" : index === 1 ? "R$ 30,00" : "R$ 20,00", // Example prizes, ideally from challenge config
+                    status: 'unclaimed',
+                    // user_name will be fetched by admin view via join or we can fetch here. 
+                    // Let's rely on admin view join for latest profile name.
+                }));
+
+                const { error: rewardError } = await supabase.from('rewards').insert(rewardsToInsert);
+                if (rewardError) console.error("Error creating rewards:", rewardError);
+            }
+
+            // 3. Update Challenge Status
             const { error } = await supabase.from('challenges').update({ status: 'finished' }).eq('id', id);
+
             if (!error) {
-                alert("Desafio finalizado!");
-                // Remove from active list locally to update UI instantly
+                alert("Desafio finalizado e prêmios gerados!");
                 setDbChallenges(prev => prev.filter(c => c.id !== id));
-                // Ideally append to finished list but a refresh handles that usually. 
-                // For now just removing from active view is good feedback.
             } else {
                 alert("Erro: " + error.message);
             }
@@ -132,6 +183,23 @@ export default function ChallengesPage() {
     };
 
     const handleStartChallenge = (challenge: Challenge) => {
+        // LIMIT CHECK: Free users can only accept 1 challenge per month
+        if (userPlan === 'free') {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            const monthlyChallenges = myResults.filter(r => {
+                const d = new Date(r.created_at);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+
+            if (monthlyChallenges.length >= 1) {
+                // Using alert for now, could be a fancy modal later
+                alert("🔒 Limite do Plano Gratuito\n\nVocê já participou de um desafio este mês. Faça upgrade para o Plano PRO e participe de competições ilimitadas!");
+                return;
+            }
+        }
+
         // 1. Utilize questions stored in the challenge object (fetched from DB)
         let examData = challenge.questions_json;
 
@@ -193,12 +261,75 @@ export default function ChallengesPage() {
         window.location.href = '/exam';
     };
 
+    const handleClaimReward = async () => {
+        if (!whatsappInput.trim() || whatsappInput.length < 10) {
+            alert("Por favor, insira um WhatsApp válido.");
+            return;
+        }
+
+        if (supabase && unclaimedReward) {
+            const { error } = await supabase
+                .from('rewards')
+                .update({
+                    status: 'pending',
+                    user_whatsapp: whatsappInput,
+                    user_name: user?.user_metadata?.full_name || user?.email || "Usuário"
+                })
+                .eq('id', unclaimedReward.id);
+
+            if (!error) {
+                alert("Parabéns! Entraremos em contato em breve.");
+                setUnclaimedReward(null);
+            } else {
+                alert("Erro ao salvar: " + error.message);
+            }
+        }
+    };
+
     // Filter for Tabs
     const activeList = dbChallenges.filter(c => c.status === 'active');
     const finishedList = dbChallenges.filter(c => c.status === 'finished');
 
     return (
         <div className="space-y-8 animate-fade-in-up">
+
+            {/* CLAIM REWARD MODAL / BANNER */}
+            {unclaimedReward && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <Card className="w-full max-w-md bg-gradient-to-br from-yellow-900/90 to-amber-900/90 border-yellow-500 shadow-2xl animate-in zoom-in duration-300">
+                        <CardHeader className="text-center">
+                            <div className="mx-auto bg-yellow-500 rounded-full p-3 w-fit mb-2 shadow-[0_0_15px_rgba(234,179,8,0.6)]">
+                                <Trophy className="w-8 h-8 text-black" />
+                            </div>
+                            <CardTitle className="text-2xl text-yellow-100">Parabéns! Você Ganhou! 🎉</CardTitle>
+                            <CardDescription className="text-yellow-200/90">
+                                Você ficou em <span className="font-bold text-white">#{unclaimedReward.position}º Lugar</span> e ganhou <span className="font-bold text-white text-lg">{unclaimedReward.prize_amount}</span>!
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-sm text-center text-yellow-100/80">
+                                Para receber sua premiação via Pix, informe seu WhatsApp abaixo. Entraremos em contato para realizar o pagamento.
+                            </p>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-yellow-200 uppercase tracking-wider">Seu WhatsApp</label>
+                                <input
+                                    type="text"
+                                    placeholder="(11) 99999-9999"
+                                    className="w-full p-3 rounded bg-black/40 border border-yellow-500/30 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    value={whatsappInput}
+                                    onChange={(e) => setWhatsappInput(e.target.value)}
+                                />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold h-12 text-lg shadow-lg" onClick={handleClaimReward}>
+                                🤑 RESGATAR PRÊMIO
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            )}
+
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Desafios & Competições</h1>
@@ -228,7 +359,7 @@ export default function ChallengesPage() {
                                     {/* Admin Actions - Absolute Top Right */}
                                     {user && user.id === ADMIN_ID && challenge.id.length > 10 && (
                                         <div className="absolute top-2 right-2 flex gap-1 z-20">
-                                            <Button variant="secondary" size="icon" className="h-8 w-8 bg-emerald-900/60 hover:bg-emerald-900 text-emerald-400 border border-emerald-800" onClick={(e) => { e.stopPropagation(); handleFinishChallenge(challenge.id); }} title="Finalizar Agora">
+                                            <Button variant="secondary" size="icon" className="h-8 w-8 bg-emerald-900/60 hover:bg-emerald-900 text-emerald-400 border border-emerald-800" onClick={(e) => { e.stopPropagation(); handleFinishChallenge(challenge.id, challenge.title); }} title="Finalizar Agora">
                                                 <div className="h-4 w-4">🏁</div>
                                             </Button>
                                             <Button variant="secondary" size="icon" className="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-slate-200" onClick={(e) => { e.stopPropagation(); handleEdit(challenge); }} title="Editar">

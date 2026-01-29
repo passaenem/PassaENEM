@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertCircle } from "lucide-react";
 import { saveExamToHistory } from "@/lib/storage";
+import { checkCredits, deductCredits } from "@/lib/credits";
+import { supabase } from "@/lib/supabase";
+import { CreditWarning } from "@/components/CreditWarning";
 
 export default function ConcursoGeneratorPage() {
     const [formData, setFormData] = useState({
@@ -20,6 +23,8 @@ export default function ConcursoGeneratorPage() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [creditWarningOpen, setCreditWarningOpen] = useState(false);
+    const [creditInfo, setCreditInfo] = useState({ current: 0, required: 0, plan: 'free' as 'free' | 'pro' | 'admin' });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -28,7 +33,25 @@ export default function ConcursoGeneratorPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        const cost = Number(formData.quantidade);
+
+        // Check credits
+        if (supabase) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const check = await checkCredits(user.id, cost);
+                if (!check.allowed) {
+                    setCreditInfo({
+                        current: check.currentCredits,
+                        required: cost,
+                        plan: check.plan
+                    });
+                    setCreditWarningOpen(true);
+                    setLoading(false);
+                    return;
+                }
+            }
+        }
 
         try {
             setError(null);
@@ -39,6 +62,13 @@ export default function ConcursoGeneratorPage() {
             const result = await response.json();
 
             if (result.success) {
+                if (supabase) {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        await deductCredits(user.id, Number(formData.quantidade));
+                    }
+                }
+
                 // Save to history
                 const newId = Math.random().toString(36).substr(2, 9);
                 saveExamToHistory({
@@ -191,6 +221,13 @@ export default function ConcursoGeneratorPage() {
                     </form>
                 </CardContent>
             </Card>
+            <CreditWarning
+                open={creditWarningOpen}
+                onClose={() => setCreditWarningOpen(false)}
+                currentCredits={creditInfo.current}
+                requiredCredits={creditInfo.required}
+                plan={creditInfo.plan}
+            />
         </div>
     );
 }
