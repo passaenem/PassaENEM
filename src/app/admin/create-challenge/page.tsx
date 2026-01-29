@@ -170,7 +170,8 @@ export default function CreateChallengePage() {
             difficulty: "Médio",
             questionsCount: 10,
             prize: "",
-            durationDays: "7"
+            durationDays: "7",
+            durationMinutes: "60"
         });
     }
 
