@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
                     if (!isAdmin && profile.credits < quantity) {
                         return NextResponse.json(
-                            { success: false, error: `Você não tem créditos suficientes. Necessário: ${quantity}, Atual: ${profile.credits}` },
+                            { success: false, error: `Limite de questões atingido. Necessário: ${quantity}, Disponível: ${profile.credits}` },
                             { status: 403 }
                         );
                     }

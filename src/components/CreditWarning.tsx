@@ -26,20 +26,20 @@ export function CreditWarning({ open, onClose, currentCredits, requiredCredits, 
                 <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center gap-2 text-red-400">
                         <Zap className="h-5 w-5 fill-red-400" />
-                        Créditos Insuficientes
+                        Limite de Questões Atingido
                     </AlertDialogTitle>
                     <AlertDialogDescription className="text-slate-300">
-                        Você precisa de <strong>{requiredCredits} créditos</strong> para gerar esta prova, mas você tem apenas <strong>{currentCredits} créditos</strong>.
+                        Você precisa gerar <strong>{requiredCredits} questões</strong>, mas seu saldo atual permite apenas <strong>{currentCredits}</strong>.
                         <br /><br />
                         {plan === 'free' ? (
                             <span>
-                                Usuários do plano <strong>FREE</strong> têm um limite de 20 créditos mensais.
+                                Usuários do plano <strong>FREE</strong> têm um limite de 20 questões mensais.
                                 Para continuar gerando provas ilimitadas e ter acesso a recursos exclusivos, faça o upgrade para o plano <strong>PRO</strong>.
                             </span>
                         ) : (
                             <span>
-                                Você atingiu seu limite mensal de 120 créditos do plano <strong>PRO</strong>.
-                                Seus créditos serão renovados automaticamente no próximo ciclo de faturamento.
+                                Você atingiu seu limite mensal de 350 questões do plano <strong>PRO</strong>.
+                                Seu limite será renovado automaticamente no próximo ciclo de faturamento.
                             </span>
                         )}
                     </AlertDialogDescription>
