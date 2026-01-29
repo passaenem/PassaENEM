@@ -30,7 +30,11 @@ export async function POST(req: NextRequest) {
         const isLocalhost = appUrl.includes('localhost');
         const fallbackUrl = "https://www.google.com";
 
-        const backUrls = {
+        const backUrls = isLocalhost ? {
+            success: fallbackUrl,
+            failure: fallbackUrl,
+            pending: fallbackUrl,
+        } : {
             success: `${appUrl}/payment/success`,
             failure: `${appUrl}/payment/failure`,
             pending: `${appUrl}/payment/pending`,
