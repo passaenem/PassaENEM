@@ -10,7 +10,7 @@ export interface UserCredits {
 }
 
 export const FREE_PLAN_LIMIT = 20;
-export const PRO_PLAN_LIMIT = 120;
+export const PRO_PLAN_LIMIT = 350;
 
 /**
  * Checks if the user needs a monthly reset.
