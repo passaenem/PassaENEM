@@ -52,7 +52,7 @@ export function CreditWarning({ open, onClose, currentCredits, requiredCredits, 
                         <AlertDialogAction
                             onClick={(e) => {
                                 e.preventDefault();
-                                window.location.href = '/#pricing';
+                                window.location.href = '/planos';
                             }}
                             className="bg-gradient-to-r from-violet-600 to-green-500 text-white hover:from-violet-700 hover:to-green-600 border-0"
                         >

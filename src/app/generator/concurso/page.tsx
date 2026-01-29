@@ -33,6 +33,7 @@ export default function ConcursoGeneratorPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
         const cost = Number(formData.quantidade);
 
         // 1. Validate Max Questions (100)
