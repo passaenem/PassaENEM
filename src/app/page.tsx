@@ -32,6 +32,8 @@ export default function LandingPage() {
         }
 
         try {
+            console.log("User data:", { email: user.email, id: user.id, planType });
+
             const res = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

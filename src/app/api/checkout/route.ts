@@ -9,7 +9,10 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { planType, userEmail, userId } = body;
 
+        console.log("Checkout Request:", { planType, userEmail, userId });
+
         if (!userId) {
+            console.error("Missing userId in request");
             return NextResponse.json({ error: "User ID missing" }, { status: 400 });
         }
 
