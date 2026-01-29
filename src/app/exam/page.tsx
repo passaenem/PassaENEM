@@ -260,13 +260,23 @@ export default function ExamPage() {
     };
 
     const calculateScore = () => {
-        if (strikes >= 3) return 0; // Fraud detected
+        if (strikes >= 3) return { percentage: 0, points: 0 };
 
-        let score = 0;
+        let correct = 0;
+        let points = 0;
+        let totalPossiblePoints = 0;
+
         questions.forEach(q => {
-            if (answers[q.id] === q.correctAnswer) score++;
+            const qPoints = q.pontuacao || 100; // Default to 100 if missing
+            totalPossiblePoints += qPoints;
+
+            if (answers[q.id] === q.correctAnswer) {
+                correct++;
+                points += qPoints;
+            }
         });
-        const percentage = Math.round((score / questions.length) * 100);
+
+        const percentage = totalPossiblePoints > 0 ? Math.round((points / totalPossiblePoints) * 100) : 0;
 
         // Save score to history if in 'take' mode and just finished
         if (mode === 'take' && finished) {
@@ -277,7 +287,7 @@ export default function ExamPage() {
                 updateExamScore(examId, percentage, answers);
             }
         }
-        return percentage;
+        return { percentage, points, totalPoints: totalPossiblePoints, correct, total: questions.length };
     };
 
 
@@ -346,14 +356,10 @@ export default function ExamPage() {
             }
 
             // Calculate final score for saving
-            let score = 0;
-            questions.forEach(q => {
-                if (answers[q.id] === q.correctAnswer) score++;
-            });
-            const percentage = Math.round((score / questions.length) * 100);
+            const results = calculateScore();
 
             // Trigger Save (Fire and Forget)
-            saveToSupabase(percentage, answers);
+            saveToSupabase(results.percentage, answers);
 
             setFinished(true);
             setMode('review');
@@ -425,9 +431,15 @@ export default function ExamPage() {
                         </h1>
 
                         {finished && mode !== 'view' && (
-                            <div className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-                                <span className="text-slate-400 text-sm mr-2">Nota:</span>
-                                <span className="font-bold text-white">{calculateScore()}%</span>
+                            <div className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 flex gap-4">
+                                <div>
+                                    <span className="text-slate-400 text-sm mr-2">Nota:</span>
+                                    <span className="font-bold text-white">{calculateScore().percentage}%</span>
+                                </div>
+                                <div>
+                                    <span className="text-slate-400 text-sm mr-2">Pontos:</span>
+                                    <span className="font-bold text-violet-400">{calculateScore().points}</span>
+                                </div>
                             </div>
                         )}
 
