@@ -1,199 +1,163 @@
 "use client";
 
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Briefcase, Zap, Trophy, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { GraduationCap, CheckCircle, TrendingUp, Brain, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getExamHistory, SavedExam } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
-  const [stats, setStats] = useState({
-    totalQuestions: 0,
-    averageScore: 0,
-    completedExams: 0,
-    favoriteArea: "Nenhuma",
-    recentExams: [] as SavedExam[]
-  });
+export default function LandingPage() {
+    const router = useRouter();
+    const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    const history = getExamHistory();
+    useEffect(() => {
+        const checkUser = async () => {
+            if (supabase) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    setUser(user);
+                }
+            }
+        };
+        checkUser();
+    }, []);
 
-    // Calculate Total Questions
-    const totalQuestions = history.reduce((acc, curr) => acc + curr.questions.length, 0);
-
-    // Calculate Completed Exams (those with a score)
-    const completedExamsList = history.filter(h => h.score !== undefined);
-    const completedExams = completedExamsList.length;
-
-    // Calculate Average Score
-    const totalScore = completedExamsList.reduce((acc, curr) => acc + (curr.score || 0), 0);
-    const averageScore = completedExams > 0 ? Math.round(totalScore / completedExams) : 0;
-
-    // Calculate Favorite Area
-    const areas: Record<string, number> = {};
-    history.forEach(h => {
-      // Try to extract area from title "Area - Topic"
-      const parts = h.title.split('-');
-      const area = parts[0]?.trim() || h.type;
-      areas[area] = (areas[area] || 0) + 1;
-    });
-
-    let favoriteArea = "N/A";
-    let maxCount = 0;
-    Object.entries(areas).forEach(([area, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        favoriteArea = area;
-      }
-    });
-
-    setStats({
-      totalQuestions,
-      averageScore,
-      completedExams,
-      favoriteArea: history.length > 0 ? favoriteArea : "Nenhuma",
-      recentExams: history.slice(0, 5) // Last 5
-    });
-
-  }, []);
-
-  return (
-    <div className="space-y-8 animate-fade-in-up">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Seu progresso em tempo real.</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/generator/enem">
-            <Button className="gap-2">
-              <GraduationCap className="h-4 w-4" />
-              Novo Simulado ENEM
-            </Button>
-          </Link>
-          <Link href="/generator/concurso">
-            <Button variant="secondary" className="gap-2">
-              <Briefcase className="h-4 w-4" />
-              Novo Simulado Concurso
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Questões Geradas</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalQuestions}</div>
-            <p className="text-xs text-muted-foreground">Questões criadas pela IA</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Acertos Médios</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.averageScore}%</div>
-            <p className="text-xs text-muted-foreground">Média de notas salvas</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Simulados Completos</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completedExams}</div>
-            <p className="text-xs text-muted-foreground">Provas finalizadas</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Área Favorita</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold truncate" title={stats.favoriteArea}>{stats.favoriteArea}</div>
-            <p className="text-xs text-muted-foreground">Tema mais estudado</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Desempenho Recente</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            {/* Placeholder for Chart - difficult to implement real chart without install library like Recharts. 
-                 Using CSS bars for now for simple visualization of last 5 scores. */}
-            <div className="h-[200px] flex items-end justify-around p-4 border-b border-dashed border-slate-700">
-              {stats.recentExams.length > 0 ? (
-                stats.recentExams.slice(0, 7).reverse().map((exam, i) => {
-                  const score = exam.score || 0;
-                  return (
-                    <div key={i} className="flex flex-col items-center gap-2 group w-full">
-                      <div
-                        className="w-8 md:w-12 bg-violet-600 rounded-t-md transition-all hover:bg-violet-500 relative"
-                        style={{ height: `${Math.max(score, 5)}%` }} // Min 5% height to show something
-                      >
-                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                          {score}%
+    return (
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+            {/* Header */}
+            <header className="border-b border-slate-800 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50">
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {/* Logo Placeholder */}
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-600 to-green-500 flex items-center justify-center">
+                            <GraduationCap className="h-5 w-5 text-white" />
+                        </div>
+                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-green-400">
+                            Passa Enem
                         </span>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground truncate max-w-[60px]">{new Date(exam.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}</span>
                     </div>
-                  )
-                })
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Sem dados suficientes para gráfico.
+                    <nav className="hidden md:flex items-center gap-6">
+                        <Link href="#features" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Funcionalidades</Link>
+                        <Link href="#pricing" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Planos</Link>
+                    </nav>
+                    <div className="flex items-center gap-4">
+                        {user ? (
+                            <Link href="/dashboard">
+                                <Button className="bg-white text-slate-950 hover:bg-slate-200 font-bold">
+                                    Ir para o App
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href="/login" className="text-sm font-medium text-slate-300 hover:text-white hidden sm:block">
+                                    Entrar
+                                </Link>
+                                <Link href="/login">
+                                    <Button className="bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/20">
+                                        Começar Agora
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
+                    </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Últimos Simulados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats.recentExams.length > 0 ? (
-                stats.recentExams.map((exam, i) => (
-                  <div key={i} className="flex items-center">
-                    <div className="ml-4 space-y-1 overflow-hidden">
-                      <p className="text-sm font-medium leading-none truncate">{exam.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {exam.type} • {exam.questions.length} questões
-                      </p>
+            </header>
+
+            {/* Hero Section */}
+            <section className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-violet-600/20 blur-[120px] rounded-full -z-10" />
+
+                <div className="inline-flex items-center rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-sm text-violet-300 mb-8 animate-in fade-in slide-in-from-bottom-5">
+                    <span className="flex h-2 w-2 rounded-full bg-violet-400 mr-2 animate-pulse"></span>
+                    Nova IA: Geração de questões 2x mais precisa
+                </div>
+
+                <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 max-w-4xl animate-in fade-in slide-in-from-bottom-10 duration-700">
+                    Estude, Evolua e <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                        Ganhe Dinheiro Estudando
+                    </span>
+                </h1>
+
+                <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-200">
+                    Participe de <strong>Desafios Semanais</strong>, suba no Ranking e ganhe prêmios em dinheiro real. A única plataforma onde seu conhecimento rende pix na conta.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+                    <Link href={user ? "/dashboard" : "/login"}>
+                        <Button size="lg" className="h-14 px-8 text-lg bg-green-500 hover:bg-green-600 text-slate-950 font-bold shadow-xl shadow-green-500/20">
+                            {user ? "Acessar Dashboard" : "Criar Conta Grátis"}
+                            <ArrowRight className="w-5 h-5 ml-2" />
+                        </Button>
+                    </Link>
+                    <Link href="#features">
+                        <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-slate-700 hover:bg-slate-800 text-slate-300">
+                            Ver como funciona
+                        </Button>
+                    </Link>
+                </div>
+
+                <div className="mt-12 flex items-center gap-4 text-sm text-slate-500 animate-in fade-in zoom-in duration-1000 delay-500">
+                    <div className="flex -space-x-2">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-950" />
+                        ))}
                     </div>
-                    <div className="ml-auto font-medium">
-                      {exam.score !== undefined ? (
-                        <span className={exam.score >= 70 ? 'text-green-500' : 'text-orange-500'}>
-                          {exam.score}%
-                        </span>
-                      ) : (
-                        <span className="text-slate-500">-</span>
-                      )}
+                    <p>+1.000 estudantes já estão usando</p>
+                </div>
+            </section>
+
+            {/* Features Grid */}
+            <section id="features" className="py-20 bg-slate-950">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-3xl font-bold text-center mb-16">Por que escolher o Passa Enem?</h2>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {/* Feature 1 */}
+                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-violet-500/50 transition-colors group">
+                            <div className="h-12 w-12 rounded-xl bg-violet-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Brain className="h-6 w-6 text-violet-400" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">IA Gemini 2.0</h3>
+                            <p className="text-slate-400">
+                                Questões inéditas geradas na hora, baseadas nas competências reais do ENEM e Concursos.
+                            </p>
+                        </div>
+
+                        {/* Feature 2 */}
+                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-green-500/50 transition-colors group relative overflow-hidden">
+                            <div className="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-bl-lg">
+                                PREMIADO
+                            </div>
+                            <div className="h-12 w-12 rounded-xl bg-green-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <TrendingUp className="h-6 w-6 text-green-400" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">Desafios Valendo Pix</h3>
+                            <p className="text-slate-400">
+                                Provas semanais criadas pela administração. Os melhores colocados no Ranking Global recebem prêmios em dinheiro.
+                            </p>
+                        </div>
+
+                        {/* Feature 3 */}
+                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 transition-colors group">
+                            <div className="h-12 w-12 rounded-xl bg-blue-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <CheckCircle className="h-6 w-6 text-blue-400" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">Correção com IA</h3>
+                            <p className="text-slate-400">
+                                Entenda onde errou com explicações detalhadas. Aprenda enquanto compete e aumente suas chances de ganhar.
+                            </p>
+                        </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground py-4 text-center">Nenhum simulado realizado.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="py-8 border-t border-slate-800 text-center text-slate-500 text-sm">
+                <p>&copy; 2024 Passa Enem. Todos os direitos reservados.</p>
+            </footer>
+        </div>
+    );
 }

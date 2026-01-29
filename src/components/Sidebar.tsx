@@ -6,7 +6,7 @@ import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy } 
 import { cn } from "@/lib/utils";
 
 const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Gerador ENEM", href: "/generator/enem", icon: GraduationCap },
     { name: "Gerador Concursos", href: "/generator/concurso", icon: Briefcase },
     { name: "Minhas Provas", href: "/history", icon: History },
@@ -14,17 +14,43 @@ const navigation = [
     { name: "Criar Desafio (Admin)", href: "/admin/create-challenge", icon: Settings },
 ];
 
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { LogIn, LogOut, User } from "lucide-react";
+import { Button } from "./ui/button";
+
 export function Sidebar() {
     const pathname = usePathname();
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const checkUser = async () => {
+            if (supabase) {
+                const { data: { user } } = await supabase.auth.getUser();
+                setUser(user);
+            }
+        };
+        checkUser();
+    }, []);
+
+    const handleLogout = async () => {
+        if (supabase) {
+            await supabase.auth.signOut();
+            setUser(null);
+            window.location.reload();
+        }
+    };
 
     return (
         <div className="hidden md:flex h-screen w-64 flex-col justify-between border-r bg-card p-4">
             <div>
                 <div className="mb-8 flex items-center px-2">
-                    <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <span className="font-bold">AI</span>
+                    <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-green-500 text-primary-foreground">
+                        <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain" />
                     </div>
-                    <span className="text-lg font-bold">Questões PRO</span>
+                    <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-green-400">
+                        Passa Enem
+                    </span>
                 </div>
                 <nav className="space-y-1">
                     {navigation.map((item) => {
@@ -47,7 +73,28 @@ export function Sidebar() {
                     })}
                 </nav>
             </div>
-            <div className="px-2 pb-4">
+            <div className="px-2 pb-4 space-y-4">
+                {user ? (
+                    <div className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
+                        <div className="h-8 w-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">
+                            {user.email?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <p className="text-xs font-medium truncate">{user.email}</p>
+                            <button onClick={handleLogout} className="text-xs text-red-400 hover:text-red-300 flex items-center mt-1">
+                                <LogOut className="w-3 h-3 mr-1" /> Sair
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <Link href="/login">
+                        <Button variant="outline" className="w-full justify-start text-muted-foreground hover:text-foreground">
+                            <LogIn className="w-4 h-4 mr-2" />
+                            Entrar
+                        </Button>
+                    </Link>
+                )}
+
                 <div className="rounded-lg bg-muted/50 p-4">
                     <h4 className="text-sm font-semibold">Créditos IA</h4>
                     <div className="mt-2 h-2 w-full rounded-full bg-muted">

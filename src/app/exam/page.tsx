@@ -5,7 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, RotateCcw, CheckCircle, ShieldAlert, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCcw, CheckCircle, ShieldAlert, Lock, Save } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Interface for Question
@@ -224,16 +225,61 @@ export default function ExamPage() {
     };
 
 
-    const confirmFinish = () => {
+
+    const saveToSupabase = async (calculatedScore: number, finalAnswers: Record<string, number>) => {
+        if (!supabase) return;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        console.log("Saving exam to Supabase...");
+
+        try {
+            const correctCount = questions.reduce((acc, q) => {
+                return (finalAnswers[q.id] === q.correctAnswer) ? acc + 1 : acc;
+            }, 0);
+
+            const { error } = await supabase.from('exam_results').insert({
+                user_id: user.id,
+                exam_title: questions[0]?.type ? `${questions[0].type} Exam` : "Simulado",
+                score_percentage: calculatedScore,
+                correct_answers: correctCount,
+                total_questions: questions.length,
+                difficulty: questions[0]?.difficulty || "Medium",
+                topic: questions[0]?.topic || "General",
+                answers_json: finalAnswers,
+                questions_json: questions,
+            });
+
+            if (error) throw error;
+            console.log("Exam saved to Supabase successfully!");
+        } catch (error) {
+            console.error("Error saving to Supabase:", error);
+        }
+    };
+
+    const confirmFinish = async () => {
         if (mode === 'take') {
             if (document.fullscreenElement) {
                 document.exitFullscreen().catch(() => { });
             }
+
+            // Calculate final score for saving
+            let score = 0;
+            questions.forEach(q => {
+                if (answers[q.id] === q.correctAnswer) score++;
+            });
+            const percentage = Math.round((score / questions.length) * 100);
+
+            // Trigger Save (Fire and Forget)
+            saveToSupabase(percentage, answers);
+
             setFinished(true);
             setMode('review');
         }
         setShowFinishConfirmation(false);
     };
+
 
     return (
         <>

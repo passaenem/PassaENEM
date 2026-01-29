@@ -6,13 +6,15 @@ import { Sidebar } from "@/components/Sidebar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AI Question Generator",
-  description: "Gerador de questões para ENEM e Concursos via IA",
+  title: "Passa Enem - Aprovado com IA",
+  description: "Plataforma de estudos inteligentes para ENEM e Concursos",
 };
 
 import { MobileNav } from "@/components/MobileNav";
 
 // ... existing imports
+
+import { AppShell } from "@/components/AppShell";
 
 export default function RootLayout({
   children,
@@ -22,13 +24,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="dark">
       <body className={inter.className}>
-        <div className="flex min-h-screen flex-col md:flex-row bg-background text-foreground">
-          <Sidebar />
-          <MobileNav />
-          <main className="flex-1 overflow-y-auto p-4 md:p-8">
-            {children}
-          </main>
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

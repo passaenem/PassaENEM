@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X, LogIn, LogOut } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Gerador ENEM", href: "/generator/enem", icon: GraduationCap },
     { name: "Gerador Concursos", href: "/generator/concurso", icon: Briefcase },
     { name: "Minhas Provas", href: "/history", icon: History },
@@ -19,14 +20,33 @@ const navigation = [
 export function MobileNav() {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        const checkUser = async () => {
+            if (supabase) {
+                const { data: { user } } = await supabase.auth.getUser();
+                setUser(user);
+            }
+        };
+        checkUser();
+    }, []);
+
+    const handleLogout = async () => {
+        if (supabase) {
+            await supabase.auth.signOut();
+            setUser(null);
+            window.location.reload();
+        }
+    };
 
     return (
         <div className="md:hidden flex items-center justify-between p-4 border-b bg-card">
             <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    <span className="font-bold">AI</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-green-500 text-primary-foreground">
+                    <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain" />
                 </div>
-                <span className="font-bold text-lg">Questões PRO</span>
+                <span className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-green-400">Passa Enem</span>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setOpen(!open)}>
                 {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -55,6 +75,27 @@ export function MobileNav() {
                                 </Link>
                             );
                         })}
+                        <div className="pt-4 border-t border-slate-800 mt-4">
+                            {user ? (
+                                <div className="flex items-center justify-between px-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-6 w-6 rounded-full bg-violet-600 flex items-center justify-center text-xs text-white font-bold">
+                                            {user.email?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-xs text-slate-400 truncate max-w-[150px]">{user.email}</span>
+                                    </div>
+                                    <Button size="sm" variant="ghost" className="h-8 text-red-400" onClick={handleLogout}>
+                                        <LogOut className="w-4 h-4 mr-2" /> Sair
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Link href="/login" onClick={() => setOpen(false)}>
+                                    <Button className="w-full bg-violet-600 hover:bg-violet-700">
+                                        <LogIn className="w-4 h-4 mr-2" /> Entrar
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </nav>
                 </div>
             )}

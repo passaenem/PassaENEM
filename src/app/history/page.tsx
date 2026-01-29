@@ -7,12 +7,47 @@ import { getExamHistory, SavedExam, clearHistory } from "@/lib/storage";
 import { Badge } from "lucide-react"; // Using lucide icons, wait, Badge is usually a component. Let's use simple div styling or check if we have Badge.
 // Checking previous files, we don't have Badge component explicitly created, I'll use standard Tailwind.
 import { Trash2, PlayCircle, Clock, BookOpen } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<SavedExam[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setHistory(getExamHistory());
+        const loadHistory = async () => {
+            setLoading(true);
+
+            // 1. Try to load from Supabase first
+            if (supabase) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data, error } = await supabase
+                        .from('exam_results')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (data && !error) {
+                        const supHistory: SavedExam[] = data.map(item => ({
+                            id: item.id,
+                            date: item.created_at,
+                            type: (item.exam_title.includes("ENEM") ? "ENEM" : "CONCURSO"), // Simple inference
+                            title: item.exam_title,
+                            score: item.score_percentage,
+                            questions: item.questions_json
+                        }));
+                        setHistory(supHistory);
+                        setLoading(false);
+                        return;
+                    }
+                }
+            }
+
+            // 2. Fallback to LocalStorage
+            setHistory(getExamHistory());
+            setLoading(false);
+        };
+
+        loadHistory();
     }, []);
 
     const handleRetake = (exam: SavedExam) => {
@@ -43,7 +78,11 @@ export default function HistoryPage() {
                 )}
             </div>
 
-            {history.length === 0 ? (
+            {loading ? (
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
+                </div>
+            ) : history.length === 0 ? (
                 <Card className="bg-slate-900 border-slate-800 text-center py-16">
                     <CardContent>
                         <div className="flex justify-center mb-4">
