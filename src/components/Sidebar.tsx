@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
