@@ -133,18 +133,16 @@ export function Sidebar() {
                             Criar Desafio (Admin)
                         </Link>
                     )}
-                    {user && user.id === ADMIN_ID && (
+                    {user?.id === ADMIN_ID && (
                         <Link
-                            href="/admin/rewards"
+                            href="/admin"
                             className={cn(
-                                "flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
-                                pathname === "/admin/rewards"
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                                pathname?.startsWith("/admin") ? "bg-accent text-accent-foreground" : "text-slate-400"
                             )}
                         >
-                            <Banknote className={cn("mr-3 h-5 w-5", pathname === "/admin/rewards" ? "text-primary" : "text-muted-foreground")} />
-                            Premiações (Admin)
+                            <ShieldAlert className="mr-2 h-4 w-4 text-red-500" />
+                            Admin Console
                         </Link>
                     )}
                     {user && user.id === ADMIN_ID && (
@@ -223,6 +221,6 @@ export function Sidebar() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
