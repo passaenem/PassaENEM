@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
         const fallbackUrl = "https://www.google.com";
 
         const backUrls = {
-            success: `${appUrl}/dashboard?payment=success`,
-            failure: `${appUrl}/?payment=failure`,
-            pending: `${appUrl}/?payment=pending`,
+            success: `${appUrl}/dashboard`,
+            failure: `${appUrl}/`,
+            pending: `${appUrl}/dashboard`,
         };
 
         console.log("Back URLs:", backUrls);
