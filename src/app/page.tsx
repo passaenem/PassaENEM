@@ -245,199 +245,198 @@ export default function LandingPage() {
                             </div>
 
                             <ul className="space-y-3 mb-8 flex-1 text-sm">
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    <strong>120 Créditos mensais*</strong>
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    ENEM + Concursos
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    Sem fidelidade
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    Ranking com Premiação
-                                </li>
-                            </ul>
+                                <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                <strong>350 Questões mensais*</strong>
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                ENEM + Concursos
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                Sem fidelidade
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                Ranking com Premiação
+                            </li>
+                        </ul>
 
-                            <div className="mt-auto w-full">
-                                <Button
-                                    className="w-full text-sm bg-slate-800 hover:bg-slate-700 text-white font-semibold"
-                                    onClick={() => handleSubscribe('monthly')}
-                                >
-                                    Assinar Mensal
-                                </Button>
-                            </div>
+                        <div className="mt-auto w-full">
+                            <Button
+                                className="w-full text-sm bg-slate-800 hover:bg-slate-700 text-white font-semibold"
+                                onClick={() => handleSubscribe('monthly')}
+                            >
+                                Assinar Mensal
+                            </Button>
                         </div>
-
-                        {/* TEST PLAN CARD (Temporary) */}
-                        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col hover:border-slate-700 transition-all opacity-80 hover:opacity-100">
-                            <h3 className="text-xl font-bold text-white mb-2">Plano Teste</h3>
-                            <p className="text-slate-400 mb-6 font-medium text-sm">Validar Pagamento</p>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-3xl font-bold text-white">R$ 1,00</span>
-                                <span className="text-slate-500 text-sm">/único</span>
-                            </div>
-
-                            <ul className="space-y-3 mb-8 flex-1 text-sm">
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                    <strong>Libera Créditos</strong>
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                    Ativa Status PRO
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                    Acesso ao Dashboard
-                                </li>
-                            </ul>
-
-                            <div className="mt-auto w-full">
-                                <Button
-                                    className="w-full text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-                                    onClick={() => handleSubscribe('test')}
-                                >
-                                    Testar (R$ 1,00)
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* Pro 6-Months Plan (Best Value) */}
-                        <div className="p-6 rounded-2xl bg-gradient-to-b from-violet-900/40 to-slate-900 border border-violet-500 flex flex-col relative overflow-hidden group shadow-2xl shadow-violet-900/20 scale-105 z-10">
-                            <div className="absolute top-0 right-0 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" />
-                                MELHOR CUSTO-BENEFÍCIO
-                            </div>
-
-                            <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                                Pro Semestral
-                                <Brain className="w-4 h-4 text-violet-400" />
-                            </h3>
-                            <p className="text-violet-200 mb-6 font-medium text-sm">A escolha inteligente (6 meses)</p>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-bold text-white">R$ 35,00</span>
-                                <span className="text-slate-400 text-sm">/mês</span>
-                            </div>
-
-                            <ul className="space-y-3 mb-8 flex-1 text-sm">
-                                <li className="flex items-center gap-2 text-white">
-                                    <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
-                                    </div>
-                                    <strong>120 Créditos mensais*</strong>
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
-                                    </div>
-                                    Acesso Total (ENEM + Concursos)
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
-                                    </div>
-                                    <span className="text-green-400 font-bold">Ganhe prêmios em dinheiro</span>
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
-                                    </div>
-                                    Histórico Avançado
-                                </li>
-                            </ul>
-
-                            <div className="mt-auto w-full">
-                                <Button
-                                    className="w-full h-11 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold shadow-lg shadow-violet-600/25"
-                                    onClick={() => handleSubscribe('recurring')}
-                                >
-                                    Assinar Agora (Recorrente)
-                                </Button>
-                            </div>
-                        </div>
-
                     </div>
 
-                    <div className="mt-12 text-center text-slate-500 text-sm max-w-2xl mx-auto">
-                        <p>* Os créditos são renovados mensalmente na data do pagamento e não são cumulativos.
-                            Caso não sejam utilizados dentro do período de 30 dias, eles expiram automaticamente.</p>
-                        <p className="mt-2">O cancelamento pode ser feito a qualquer momento sem multa.</p>
+                    {/* TEST PLAN CARD (Temporary) */}
+                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col hover:border-slate-700 transition-all opacity-80 hover:opacity-100">
+                        <h3 className="text-xl font-bold text-white mb-2">Plano Teste</h3>
+                        <p className="text-slate-400 mb-6 font-medium text-sm">Validar Pagamento</p>
+                        <div className="flex items-baseline gap-1 mb-6">
+                            <span className="text-3xl font-bold text-white">R$ 1,00</span>
+                            <span className="text-slate-500 text-sm">/único</span>
+                        </div>
+
+                        <ul className="space-y-3 mb-8 flex-1 text-sm">
+                            <li className="flex items-center gap-2 text-white">
+                                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                                <strong>Libera Questões</strong>
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                                Ativa Status PRO
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                                Acesso ao Dashboard
+                            </li>
+                        </ul>
+
+                        <div className="mt-auto w-full">
+                            <Button
+                                className="w-full text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                                onClick={() => handleSubscribe('test')}
+                            >
+                                Testar (R$ 1,00)
+                            </Button>
+                        </div>
                     </div>
+
+                    {/* Pro 6-Months Plan (Best Value) */}
+                    <div className="p-6 rounded-2xl bg-gradient-to-b from-violet-900/40 to-slate-900 border border-violet-500 flex flex-col relative overflow-hidden group shadow-2xl shadow-violet-900/20 scale-105 z-10">
+                        <div className="absolute top-0 right-0 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3" />
+                            MELHOR CUSTO-BENEFÍCIO
+                        </div>
+
+                        <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                            Pro Semestral
+                            <Brain className="w-4 h-4 text-violet-400" />
+                        </h3>
+                        <p className="text-violet-200 mb-6 font-medium text-sm">A escolha inteligente (6 meses)</p>
+                        <div className="flex items-baseline gap-1 mb-6">
+                            <span className="text-4xl font-bold text-white">R$ 35,00</span>
+                            <span className="text-slate-400 text-sm">/mês</span>
+                        </div>
+
+                        <ul className="space-y-3 mb-8 flex-1 text-sm">
+                            <li className="flex items-center gap-2 text-white">
+                                <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-3 h-3 text-violet-400" />
+                                </div>
+                                <strong>350 Questões mensais*</strong>
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-3 h-3 text-violet-400" />
+                                </div>
+                                Acesso Total (ENEM + Concursos)
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-3 h-3 text-violet-400" />
+                                </div>
+                                <span className="text-green-400 font-bold">Ganhe prêmios em dinheiro</span>
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-3 h-3 text-violet-400" />
+                                </div>
+                                Histórico Avançado
+                            </li>
+                        </ul>
+
+                        <div className="mt-auto w-full">
+                            <Button
+                                className="w-full h-11 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold shadow-lg shadow-violet-600/25"
+                                onClick={() => handleSubscribe('recurring')}
+                            >
+                                Assinar Agora (Recorrente)
+                            </Button>
+                        </div>
+                    </div>
+
                 </div>
-            </section>
 
-            <section className="py-20 bg-slate-950 relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 blur-[100px] rounded-full -z-10" />
-
-                <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold text-center mb-16 animate-in fade-in slide-in-from-bottom-5">
-                        O que nossos alunos dizem
-                    </h2>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {/* Testimonial 1 */}
-                        <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-violet-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
-                            <Quote className="h-8 w-8 text-violet-500/20 absolute top-6 right-6" />
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
-                                    <Image src="/avatars/avatar-1.png" alt="Mariana Silva" fill className="object-cover" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-white">Mariana Silva</h4>
-                                    <p className="text-xs text-green-400 font-medium">Aprovada em Medicina</p>
-                                </div>
-                            </div>
-                            <p className="text-slate-400 text-sm leading-relaxed">
-                                "Eu sempre tive dificuldade em focar, mas os desafios semanais me deram a motivação que eu precisava. Ganhar meu primeiro Pix estudando foi surreal!"
-                            </p>
-                        </div>
-
-                        {/* Testimonial 2 */}
-                        <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-green-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
-                            <Quote className="h-8 w-8 text-green-500/20 absolute top-6 right-6" />
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
-                                    <Image src="/avatars/avatar-4.png" alt="Ricardo Oliveira" fill className="object-cover" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-white">Ricardo Oliveira</h4>
-                                    <p className="text-xs text-green-400 font-medium">1º Lugar no Simulado</p>
-                                </div>
-                            </div>
-                            <p className="text-slate-400 text-sm leading-relaxed">
-                                "A correção com IA mudou meu jeito de estudar. Antes eu errava e não sabia o porquê, agora tenho a explicação detalhada na hora. Vale muito a pena."
-                            </p>
-                        </div>
-
-                        {/* Testimonial 3 */}
-                        <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-blue-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
-                            <Quote className="h-8 w-8 text-blue-500/20 absolute top-6 right-6" />
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
-                                    <Image src="/avatars/avatar-3.png" alt="Beatriz Costa" fill className="object-cover" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-white">Beatriz Costa</h4>
-                                    <p className="text-xs text-green-400 font-medium">Aprovada no ENEM</p>
-                                </div>
-                            </div>
-                            <p className="text-slate-400 text-sm leading-relaxed">
-                                "Plataforma incrível! O design é lindo e super rápido. Os desafios semanais criam uma competição saudável que te faz querer estudar mais todo dia."
-                            </p>
-                        </div>
-                    </div>
+                <div className="mt-12 text-center text-slate-500 text-sm max-w-2xl mx-auto">
+                    <p>* O limite de questões é renovado mensalmente na data do pagamento e não é cumulativo.
+                        Caso não sejam utilizadas dentro do período de 30 dias, elas expiram automaticamente.</p>
+                    <p className="mt-2">O cancelamento pode ser feito a qualquer momento sem multa.</p>
                 </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="py-8 border-t border-slate-800 text-center text-slate-500 text-sm">
-                <p>&copy; 2024 Passa Enem. Todos os direitos reservados.</p>
-            </footer>
         </div>
+            </section >
+
+        <section className="py-20 bg-slate-950 relative overflow-hidden">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 blur-[100px] rounded-full -z-10" />
+
+            <div className="container mx-auto px-4">
+                <h2 className="text-3xl font-bold text-center mb-16 animate-in fade-in slide-in-from-bottom-5">
+                    O que nossos alunos dizem
+                </h2>
+
+                <div className="grid md:grid-cols-3 gap-8">
+                    {/* Testimonial 1 */}
+                    <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-violet-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
+                        <Quote className="h-8 w-8 text-violet-500/20 absolute top-6 right-6" />
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
+                                <Image src="/avatars/avatar-1.png" alt="Mariana Silva" fill className="object-cover" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-white">Mariana Silva</h4>
+                                <p className="text-xs text-green-400 font-medium">Aprovada em Medicina</p>
+                            </div>
+                        </div>
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                            "Eu sempre tive dificuldade em focar, mas os desafios semanais me deram a motivação que eu precisava. Ganhar meu primeiro Pix estudando foi surreal!"
+                        </p>
+                    </div>
+
+                    {/* Testimonial 2 */}
+                    <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-green-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
+                        <Quote className="h-8 w-8 text-green-500/20 absolute top-6 right-6" />
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
+                                <Image src="/avatars/avatar-4.png" alt="Ricardo Oliveira" fill className="object-cover" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-white">Ricardo Oliveira</h4>
+                                <p className="text-xs text-green-400 font-medium">1º Lugar no Simulado</p>
+                            </div>
+                        </div>
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                            "A correção com IA mudou meu jeito de estudar. Antes eu errava e não sabia o porquê, agora tenho a explicação detalhada na hora. Vale muito a pena."
+                        </p>
+                    </div>
+
+                    {/* Testimonial 3 */}
+                    <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-blue-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
+                        <Quote className="h-8 w-8 text-blue-500/20 absolute top-6 right-6" />
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
+                                <Image src="/avatars/avatar-3.png" alt="Beatriz Costa" fill className="object-cover" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-white">Beatriz Costa</h4>
+                                <p className="text-xs text-green-400 font-medium">Aprovada no ENEM</p>
+                            </div>
+                        </div>
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                            "Plataforma incrível! O design é lindo e super rápido. Os desafios semanais criam uma competição saudável que te faz querer estudar mais todo dia."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    {/* Footer */ }
+    <footer className="py-8 border-t border-slate-800 text-center text-slate-500 text-sm">
+        <p>&copy; 2024 Passa Enem. Todos os direitos reservados.</p>
+    </footer>
+        </div >
     );
 }
