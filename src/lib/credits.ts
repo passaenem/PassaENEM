@@ -9,7 +9,7 @@ export interface UserCredits {
     last_reset: string;
 }
 
-export const FREE_PLAN_LIMIT = 100;
+export const FREE_PLAN_LIMIT = 20;
 export const PRO_PLAN_LIMIT = 350;
 
 /**
