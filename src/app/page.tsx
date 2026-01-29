@@ -25,7 +25,7 @@ export default function LandingPage() {
         checkUser();
     }, []);
 
-    const handleSubscribe = async (planType: 'monthly' | 'recurring') => {
+    const handleSubscribe = async (planType: 'monthly' | 'recurring' | 'test') => {
         if (!user) {
             router.push("/login?callbackUrl=/"); // Redirect to login then back here ideally
             return;
