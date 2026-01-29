@@ -32,7 +32,26 @@ export async function checkAndResetCredits(userId: string) {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(now.getMonth() - 1);
 
-    // If last reset was more than a month ago
+    // 1. Check for Plan Expiration (Downgrade to Free)
+    if (profile.plan_type === 'pro' && profile.plan_end_date) {
+        const planEndDate = new Date(profile.plan_end_date);
+
+        if (now > planEndDate) {
+            // Plan expired! Demote to free
+            await supabase
+                .from('profiles')
+                .update({
+                    plan_type: 'free',
+                    credits: FREE_PLAN_LIMIT, // Reset to free limit
+                    plan_end_date: null
+                })
+                .eq('id', userId);
+
+            return; // Exit after downgrade
+        }
+    }
+
+    // 2. Monthly Credit Reset (only if still active plan)
     if (lastReset < oneMonthAgo) {
         const limit = profile.plan_type === 'pro' ? PRO_PLAN_LIMIT : FREE_PLAN_LIMIT;
 

@@ -53,15 +53,22 @@ async function handleProActivation(userId: string, amount: number | undefined, t
     );
 
     // 1. Activate PRO
-    const nextMonth = new Date();
-    nextMonth.setDate(nextMonth.getDate() + 30); // Grant 30 days
+    const endDate = new Date();
+
+    // Check if it's the Test Plan (R$ 1.00) => 1 Day Duration
+    // Otherwise (R$ 35.00 or R$ 49.90) => 30 Days Duration
+    if (amount === 1.00) {
+        endDate.setDate(endDate.getDate() + 1); // 1 Day for Test
+    } else {
+        endDate.setDate(endDate.getDate() + 30); // 30 Days for Monthly/Recurring
+    }
 
     const { error: updateError } = await supabaseAdmin
         .from('profiles')
         .update({
             plan_type: 'pro',
             credits: 120,
-            plan_end_date: nextMonth.toISOString(),
+            plan_end_date: endDate.toISOString(),
         })
         .eq('id', userId);
 
