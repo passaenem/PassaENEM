@@ -19,45 +19,95 @@ export default function Home() {
   });
 
   useEffect(() => {
-    const history = getExamHistory();
+    const fetchStats = async () => {
+      // Fetch from Supabase via getExamHistory (which now uses DB internally?) 
+      // Or directly here. Let's do directly here for clarity and to ensure we get ALL results.
+      // Actually, getExamHistory in storage.ts MIGHT still be local-only or hybrid. 
+      // Let's use direct Supabase call as we did in History page.
 
-    // Calculate Total Questions
-    const totalQuestions = history.reduce((acc, curr) => acc + curr.questions.length, 0);
+      let examData: any[] = [];
+      // Try Supabase first
+      if (typeof window !== 'undefined') {
+        try {
+          // Dynamic import to avoid build issues if strictly server
+          const { supabase } = await import("@/lib/supabase");
+          if (supabase) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              const { data, error } = await supabase
+                .from('exam_results')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
 
-    // Calculate Completed Exams (those with a score)
-    const completedExamsList = history.filter(h => h.score !== undefined);
-    const completedExams = completedExamsList.length;
-
-    // Calculate Average Score
-    const totalScore = completedExamsList.reduce((acc, curr) => acc + (curr.score || 0), 0);
-    const averageScore = completedExams > 0 ? Math.round(totalScore / completedExams) : 0;
-
-    // Calculate Favorite Area
-    const areas: Record<string, number> = {};
-    history.forEach(h => {
-      // Try to extract area from title "Area - Topic"
-      const parts = h.title.split('-');
-      const area = parts[0]?.trim() || h.type;
-      areas[area] = (areas[area] || 0) + 1;
-    });
-
-    let favoriteArea = "N/A";
-    let maxCount = 0;
-    Object.entries(areas).forEach(([area, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        favoriteArea = area;
+              if (data) examData = data;
+            }
+          }
+        } catch (e) {
+          console.error("Error fetching dashboard stats:", e);
+        }
       }
-    });
 
-    setStats({
-      totalQuestions,
-      averageScore,
-      completedExams,
-      favoriteArea: history.length > 0 ? favoriteArea : "Nenhuma",
-      recentExams: history.slice(0, 5) // Last 5
-    });
+      // Parse Data
+      // Map DB structure to internal logic
+      // DB: questions_json, score_percentage, exam_title
 
+      const totalQuestions = examData.reduce((acc, curr) => {
+        // questions_json can be string or object
+        let qCount = 0;
+        if (Array.isArray(curr.questions_json)) qCount = curr.questions_json.length;
+        // Handle if stored as string? Supabase handles JSONB as object usually.
+        return acc + qCount;
+      }, 0);
+
+      const completedExamsList = examData.filter(h => h.score_percentage !== undefined && h.score_percentage !== null);
+      const completedExams = completedExamsList.length;
+
+      const totalScore = completedExamsList.reduce((acc, curr) => acc + (curr.score_percentage || 0), 0);
+      const averageScore = completedExams > 0 ? Math.round(totalScore / completedExams) : 0;
+
+      // Calculate Favorite Area
+      const areas: Record<string, number> = {};
+      examData.forEach(h => {
+        // Title format: "ENEM - Historia" or just "Concurso"
+        // Try to be smart
+        const title = h.exam_title || "";
+        const parts = title.split('-');
+        let area = parts[0]?.trim();
+        if (parts.length > 1) area = parts[1]?.trim(); // If "ENEM - Math", take Math
+
+        if (area) areas[area] = (areas[area] || 0) + 1;
+      });
+
+      let favoriteArea = "Nenhuma";
+      let maxCount = 0;
+      Object.entries(areas).forEach(([area, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          favoriteArea = area;
+        }
+      });
+
+      // Map for Recent Exams UI
+      const recent = examData.slice(0, 10).map(h => ({
+        id: h.id,
+        date: h.created_at,
+        title: h.exam_title,
+        type: h.exam_title.includes("ENEM") ? "ENEM" : "CONCURSO",
+        score: h.score_percentage,
+        questions: h.questions_json || []
+      }));
+
+      setStats({
+        totalQuestions,
+        averageScore,
+        completedExams,
+        favoriteArea: favoriteArea,
+        recentExams: recent
+      });
+    };
+
+    fetchStats();
   }, []);
 
   return (
