@@ -247,7 +247,7 @@ export default function LandingPage() {
                             <ul className="space-y-3 mb-8 flex-1 text-sm">
                                 <li className="flex items-center gap-2 text-white">
                                     <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    <strong>120 Créditos mensais</strong>
+                                    <strong>120 Créditos mensais*</strong>
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
                                     <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
