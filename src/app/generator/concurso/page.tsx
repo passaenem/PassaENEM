@@ -107,6 +107,7 @@ export default function ConcursoGeneratorPage() {
 
             sessionStorage.setItem('currentExam', JSON.stringify(result.data));
             sessionStorage.setItem('currentExamId', newId);
+            sessionStorage.setItem('currentExamDuration', formData.tempo.toString());
             sessionStorage.removeItem('isRanked'); // Disable Lockdown for generated exams
             window.location.href = '/exam';
 

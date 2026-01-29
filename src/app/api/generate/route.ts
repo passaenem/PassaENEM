@@ -164,7 +164,8 @@ export async function POST(request: Request) {
                 explanation: q.explicacao,
                 difficulty: q.dificuldade,
                 topic: params.tema || params.disciplina,
-                context: q.contexto || undefined
+                context: q.contexto || undefined,
+                pontuacao: q.pontuacao || Math.floor(Math.random() * 4 + 1) * 100 // Fallback random 100-400
             };
         });
 

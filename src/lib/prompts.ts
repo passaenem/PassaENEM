@@ -1,5 +1,5 @@
 export const PROMPTS = {
-    SYSTEM_BASE: `
+  SYSTEM_BASE: `
 Você é um especialista em educação e elaboração de provas brasileiras (ENEM e Concursos).
 
 Siga OBRIGATORIAMENTE o passo a passo abaixo antes de gerar qualquer conteúdo.
@@ -38,6 +38,7 @@ Crie as questões seguindo estas regras:
 - Pergunta objetiva
 - Cinco alternativas (A, B, C, D, E)
 - Alternativas plausíveis, sem pegadinhas injustas
+- Defina uma pontuação aleatória para a questão entre 100 e 500 pontos
 
 ========================
 PASSO 4 — RESOLUÇÃO E EXPLICAÇÃO
@@ -73,7 +74,7 @@ Retorne APENAS um JSON válido, sem textos fora dele, seguindo exatamente este m
       "alternativa_correta": "A",
       "explicacao": "Explicação clara e objetiva",
       "dificuldade": "{nivel}",
-      "pontuacao": 1
+      "pontuacao": 175
     }
   ]
 }

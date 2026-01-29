@@ -141,17 +141,35 @@ export default function ExamPage() {
         if (timeLeft === null || finished || !started) return;
 
         if (timeLeft === 0) {
-            // Time's up!
-            alert("Tempo esgotado! Sua prova será finalizada automaticamente.");
-            confirmFinish(); // Auto-submit
+            // Time's up! Just warn, don't close.
+            // We use a toast or just let it sit at 00:00.
+            // But user asked for notification.
+            // To avoid repeating alert, we check if we already alerted?
+            // Since we can't easily store "alerted" in this effect without ref, we assume specific value check or ref.
+            // Simplified: If it hits 0, we can just stop ticking.
             return;
         }
 
         const timer = setInterval(() => {
-            setTimeLeft(prev => (prev !== null && prev > 0) ? prev - 1 : 0);
+            setTimeLeft(prev => {
+                if (prev === null) return null;
+                if (prev <= 1) { // Will hit 0
+                    // We can put the alert here, but useEffect is better for side effects.
+                    // However, to avoid state thrashing, we'll let existing effect render 0.
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
 
         return () => clearInterval(timer);
+    }, [timeLeft, finished, started]);
+
+    // Separate effect for alerting once when time hits 0
+    useEffect(() => {
+        if (timeLeft === 0 && !finished && started) {
+            alert("O tempo acabou! Você pode continuar respondendo, mas o tempo limite foi excedido.");
+        }
     }, [timeLeft, finished, started]);
 
     const formatTime = (seconds: number) => {
@@ -429,7 +447,10 @@ export default function ExamPage() {
                     <Card className="bg-slate-900 border-slate-800">
                         <CardHeader>
                             <CardTitle className="text-sm text-slate-400 uppercase tracking-wide flex justify-between">
-                                <span>{currentQuestion.topic} • {currentQuestion.difficulty}</span>
+                                <div className="flex gap-4">
+                                    <span>{currentQuestion.topic} • {currentQuestion.difficulty}</span>
+                                    <span className="text-violet-400 font-bold">{currentQuestion.pontuacao || 100} PTS</span>
+                                </div>
                                 {finished && !isRanked && (answers[currentQuestion.id] === currentQuestion.correctAnswer ?
                                     <span className="text-green-500 font-bold">Correta</span> :
                                     (finished && answers[currentQuestion.id] !== undefined) ? <span className="text-red-500 font-bold">Incorreta</span> : null
@@ -528,12 +549,12 @@ export default function ExamPage() {
 
                             {finished ? (
                                 <div className="flex gap-2">
-                                    <Button variant="secondary" onClick={() => window.location.href = '/challenges'} className="hidden sm:flex">
+                                    <Button variant="secondary" onClick={() => window.location.href = isRanked ? '/challenges' : '/history'} className="hidden sm:flex">
                                         Voltar
                                     </Button>
                                     <Button
-                                        onClick={isLast ? () => window.location.href = '/challenges' : handleNext}
-                                        disabled={(isLast && mode === 'view') || (isLast && isRanked && finished)}
+                                        onClick={isLast ? () => window.location.href = isRanked ? '/challenges' : '/history' : handleNext}
+                                        disabled={(isLast && mode === 'view')}
                                         className={cn(isLast ? "bg-violet-600" : "bg-slate-800")}
                                     >
                                         {isLast ? 'Finalizar' : 'Próxima'}

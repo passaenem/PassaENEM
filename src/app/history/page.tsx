@@ -27,14 +27,22 @@ export default function HistoryPage() {
                         .order('created_at', { ascending: false });
 
                     if (data && !error) {
-                        const supHistory: SavedExam[] = data.map(item => ({
-                            id: item.id,
-                            date: item.created_at,
-                            type: (item.exam_title.includes("ENEM") ? "ENEM" : "CONCURSO"), // Simple inference
-                            title: item.exam_title,
-                            score: item.score_percentage,
-                            questions: item.questions_json
-                        }));
+                        const supHistory: SavedExam[] = data.map(item => {
+                            // Merge answers into questions
+                            const questionsWithAnswers = item.questions_json.map((q: any) => ({
+                                ...q,
+                                userAnswer: item.answers_json ? item.answers_json[q.id] : undefined
+                            }));
+
+                            return {
+                                id: item.id,
+                                date: item.created_at,
+                                type: (item.exam_title.includes("ENEM") ? "ENEM" : "CONCURSO"),
+                                title: item.exam_title,
+                                score: item.score_percentage,
+                                questions: questionsWithAnswers
+                            };
+                        });
                         setHistory(supHistory);
                         setLoading(false);
                         return;

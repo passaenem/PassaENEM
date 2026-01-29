@@ -8,6 +8,7 @@ export interface ExamQuestion {
     difficulty: string;
     topic: string;
     context?: string;
+    pontuacao?: number; // Score value for this question
     userAnswer?: number; // Optional, to store history of answers if needed later
 }
 
