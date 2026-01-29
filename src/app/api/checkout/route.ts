@@ -74,6 +74,35 @@ export async function POST(req: NextRequest) {
 
             return NextResponse.json({ url: result.init_point });
 
+        } else if (planType === 'test') {
+            // Test Payment (R$ 1.00)
+            const preference = new Preference(client);
+            const result = await preference.create({
+                body: {
+                    items: [
+                        {
+                            id: 'test-plan',
+                            title: 'PassaENEM - Teste de Pagamento',
+                            quantity: 1,
+                            unit_price: 1.00,
+                            currency_id: 'BRL',
+                        },
+                    ],
+                    payer: {
+                        email: userEmail,
+                    },
+                    back_urls: backUrls,
+                    auto_return: 'approved',
+                    external_reference: userId,
+                    metadata: {
+                        plan_type: 'test',
+                        user_id: userId
+                    }
+                }
+            });
+
+            return NextResponse.json({ url: result.init_point });
+
         } else if (planType === 'recurring') {
             // Subscription (Pro Recorrente - R$ 35.00/mês)
             const preapproval = new PreApproval(client);
