@@ -74,13 +74,12 @@ export async function POST(req: NextRequest) {
                     auto_recurring: {
                         frequency: 1,
                         frequency_type: 'months',
-                        transaction_amount: 35.00,
+                        transaction_amount: 35, // Must be integer, not float
                         currency_id: 'BRL',
                     },
                     payer_email: userEmail,
                     back_url: subscriptionBackUrl,
-                    status: 'authorized',
-                    external_reference: userId, // PASS USER ID HERE
+                    external_reference: userId,
                 }
             });
 
