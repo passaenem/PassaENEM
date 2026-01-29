@@ -145,6 +145,18 @@ export function Sidebar() {
                             Admin Console
                         </Link>
                     )}
+                    {user?.id === ADMIN_ID && (
+                        <Link
+                            href="/admin/users"
+                            className={cn(
+                                "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                                pathname === "/admin/users" ? "bg-accent text-accent-foreground" : "text-slate-400"
+                            )}
+                        >
+                            <User className="mr-2 h-4 w-4 text-blue-500" />
+                            Gestão de Usuários
+                        </Link>
+                    )}
                     {user && user.id === ADMIN_ID && (
                         <Link
                             href="/admin/subscriptions"
