@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { MercadoPagoConfig, Payment, PreApproval } from "mercadopago";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Supabase Admin client to bypass RLS for updates
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || '' });
 
 export async function POST(req: NextRequest) {
@@ -52,6 +46,12 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleProActivation(userId: string, amount: number | undefined, type: string, paymentId: string) {
+    // Initialize Supabase Admin client to bypass RLS for updates
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // 1. Activate PRO
     const nextMonth = new Date();
     nextMonth.setDate(nextMonth.getDate() + 30); // Grant 30 days

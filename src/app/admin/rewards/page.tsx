@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, AlertTriangle, MessageSquare } from "lucide-react";
+import { CheckCircle, Clock, AlertTriangle, MessageSquare, Trophy } from "lucide-react";
 
 export default function AdminRewardsPage() {
     const [rewards, setRewards] = useState<any[]>([]);
@@ -82,7 +82,7 @@ export default function AdminRewardsPage() {
                         <div key={challengeTitle} className="space-y-4">
                             <h2 className="text-xl font-bold text-slate-200 border-l-4 border-violet-500 pl-3">{challengeTitle}</h2>
                             <div className="grid gap-4">
-                                {challengeRewards.map((reward) => (
+                                {(challengeRewards as any[]).map((reward) => (
                                     <Card key={reward.id} className="bg-slate-900 border-slate-800 hover:border-slate-700 transition-colors">
                                         <CardContent className="flex flex-col md:flex-row items-center justify-between p-6 gap-4">
                                             <div className="space-y-1">
