@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Server misconfigured: MP_ACCESS_TOKEN missing" }, { status: 500 });
         }
 
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, ''); // Remove trailing slash
 
         console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
         console.log("Using appUrl:", appUrl);
