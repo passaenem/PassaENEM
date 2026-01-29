@@ -108,6 +108,38 @@ export default function AdminDashboardPage() {
         setFilteredUsers(filtered);
     }, [searchQuery, users]);
 
+    const handleAddCredits = async () => {
+        if (!selectedUser || !creditAmount || isNaN(Number(creditAmount))) return;
+
+        try {
+            const amount = parseInt(creditAmount);
+            const newTotal = (selectedUser.credits || 0) + amount;
+
+            if (!supabase) {
+                alert("Erro: Conexão com Supabase não inicializada.");
+                return;
+            }
+
+            const { error } = await supabase
+                .from('profiles')
+                .update({ credits: newTotal })
+                .eq('id', selectedUser.id);
+
+            if (error) throw error;
+
+            // Update Local State
+            setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, credits: newTotal } : u));
+            setIsCreditModalOpen(false);
+            setCreditAmount("50");
+            setSelectedUser(null);
+            alert(`Sucesso! ${amount} créditos adicionados para ${selectedUser.full_name}.`);
+
+        } catch (error: any) {
+            console.error("Error adding credits:", error);
+            alert("Erro ao adicionar créditos: " + error.message);
+        }
+    };
+
     // ... (handleAddCredits remains same)
 
     if (loading) return (
