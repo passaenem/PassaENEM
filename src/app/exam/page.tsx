@@ -20,6 +20,7 @@ interface Question {
     explanation: string;
     difficulty: string;
     topic: string;
+    pontuacao?: number;
 }
 
 export default function ExamPage() {
