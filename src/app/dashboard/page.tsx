@@ -93,7 +93,7 @@ export default function Home() {
         id: h.id,
         date: h.created_at,
         title: h.exam_title,
-        type: h.exam_title.includes("ENEM") ? "ENEM" : "CONCURSO",
+        type: (h.exam_title && h.exam_title.includes("ENEM")) ? "ENEM" : "CONCURSO" as "ENEM" | "CONCURSO",
         score: h.score_percentage,
         questions: h.questions_json || []
       }));
