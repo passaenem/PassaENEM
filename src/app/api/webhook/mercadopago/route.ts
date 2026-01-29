@@ -57,11 +57,13 @@ async function handleProActivation(userId: string, amount: number | undefined, t
 
     // Check if it's the Test Plan (R$ 1.00) => 1 Day Duration
     // Otherwise (R$ 35.00 or R$ 49.90) => 30 Days Duration
-    if (amount === 1.00) {
-        endDate.setDate(endDate.getDate() + 1); // 1 Day for Test
-    } else {
-        endDate.setDate(endDate.getDate() + 30); // 30 Days for Monthly/Recurring
-    }
+    // For Testing purposes, we will treat R$ 1.00 as a full month activation as well
+    // This avoids the "expired immediately" confusion during validation.
+    // if (amount === 1.00) {
+    //    endDate.setDate(endDate.getDate() + 1); // 1 Day for Test
+    // } else {
+    endDate.setDate(endDate.getDate() + 30); // 30 Days for Monthly/Recurring
+    // }
 
     const { error: updateError } = await supabaseAdmin
         .from('profiles')

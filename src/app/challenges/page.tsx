@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Clock, Users, Star, ArrowRight, Wallet, AlertCircle, Trash2, CheckCircle, Lock } from "lucide-react";
+import { Trophy, Clock, Users, Star, ArrowRight, Wallet, AlertCircle, Trash2, CheckCircle, Lock, Zap } from "lucide-react";
 import { activeChallenges, finishedChallenges, userPerformance, Challenge } from "@/lib/challenges";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
@@ -182,7 +182,12 @@ export default function ChallengesPage() {
         }
     };
 
-    const handleStartChallenge = (challenge: Challenge) => {
+    // Phone Modal State
+    const [showPhoneModal, setShowPhoneModal] = useState(false);
+    const [pendingChallenge, setPendingChallenge] = useState<Challenge | null>(null);
+    const [userPhone, setUserPhone] = useState("");
+
+    const handleStartChallenge = async (challenge: Challenge) => {
         // LIMIT CHECK: Free users can only accept 1 challenge per month
         if (userPlan === 'free') {
             const currentMonth = new Date().getMonth();
@@ -194,12 +199,52 @@ export default function ChallengesPage() {
             });
 
             if (monthlyChallenges.length >= 1) {
-                // Using alert for now, could be a fancy modal later
                 alert("🔒 Limite do Plano Gratuito\n\nVocê já participou de um desafio este mês. Faça upgrade para o Plano PRO e participe de competições ilimitadas!");
                 return;
             }
         }
 
+        // PHONE CHECK: Check if user has phone saved in profile
+        if (user && supabase) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('phone')
+                .eq('id', user.id)
+                .single();
+
+            if (!profile?.phone) {
+                setPendingChallenge(challenge);
+                setShowPhoneModal(true);
+                return;
+            }
+        }
+
+        proceedToExam(challenge);
+    };
+
+    const handleSavePhoneAndStart = async () => {
+        if (!userPhone || userPhone.length < 10) {
+            alert("Por favor, insira um WhatsApp válido com DDD.");
+            return;
+        }
+
+        if (supabase && user) {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ phone: userPhone })
+                .eq('id', user.id);
+
+            if (error) {
+                alert("Erro ao salvar telefone: " + error.message);
+                return;
+            }
+
+            setShowPhoneModal(false);
+            if (pendingChallenge) proceedToExam(pendingChallenge);
+        }
+    }
+
+    const proceedToExam = (challenge: Challenge) => {
         // 1. Utilize questions stored in the challenge object (fetched from DB)
         let examData = challenge.questions_json;
 
@@ -221,7 +266,7 @@ export default function ChallengesPage() {
 
         // 2. Setup Session
         sessionStorage.setItem('currentExam', JSON.stringify(examData));
-        sessionStorage.setItem('currentExamTitle', `Desafio: ${challenge.title}`); // IMPORTANT: For identifying result later
+        sessionStorage.setItem('currentExamTitle', `Desafio: ${challenge.title}`);
         sessionStorage.setItem('currentExamDuration', (challenge.duration_minutes || 60).toString());
         sessionStorage.setItem('isRanked', 'true');
 
@@ -292,6 +337,44 @@ export default function ChallengesPage() {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
+
+            {/* PHONE COLLECTION MODAL */}
+            {showPhoneModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <Card className="w-full max-w-md bg-slate-900 border-violet-500 shadow-2xl animate-in zoom-in duration-300">
+                        <CardHeader className="text-center">
+                            <div className="mx-auto bg-violet-600 rounded-full p-3 w-fit mb-2 shadow-lg">
+                                <Zap className="w-8 h-8 text-white" />
+                            </div>
+                            <CardTitle className="text-2xl text-white">Quase lá!</CardTitle>
+                            <CardDescription className="text-slate-300">
+                                Para participar dos Desafios Valendo Prêmios, precisamos do seu <strong>WhatsApp (Pix)</strong> para contato.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-violet-300 uppercase tracking-wider">Seu WhatsApp com DDD</label>
+                                <input
+                                    type="text"
+                                    placeholder="(11) 99999-9999"
+                                    className="w-full p-3 rounded bg-black/40 border border-violet-500/30 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    value={userPhone}
+                                    onChange={(e) => setUserPhone(e.target.value)}
+                                />
+                                <p className="text-[10px] text-slate-500">* Seus dados estão seguros e serão usados apenas para pagamento de prêmios.</p>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col gap-2">
+                            <Button className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold h-12 text-lg shadow-lg" onClick={handleSavePhoneAndStart}>
+                                Salvar e Começar 🚀
+                            </Button>
+                            <Button variant="ghost" className="w-full text-slate-500 text-xs" onClick={() => setShowPhoneModal(false)}>
+                                Cancelar
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            )}
 
             {/* CLAIM REWARD MODAL / BANNER */}
             {unclaimedReward && (

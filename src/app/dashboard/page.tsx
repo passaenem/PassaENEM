@@ -20,19 +20,22 @@ export default function Home() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      // Fetch from Supabase via getExamHistory (which now uses DB internally?) 
-      // Or directly here. Let's do directly here for clarity and to ensure we get ALL results.
-      // Actually, getExamHistory in storage.ts MIGHT still be local-only or hybrid. 
-      // Let's use direct Supabase call as we did in History page.
-
       let examData: any[] = [];
-      // Try Supabase first
+
+      // Dynamic import to avoid build issues if strictly server
       if (typeof window !== 'undefined') {
         try {
-          // Dynamic import to avoid build issues if strictly server
           const { supabase } = await import("@/lib/supabase");
           if (supabase) {
             const { data: { user } } = await supabase.auth.getUser();
+
+            // ADMIN REDIRECT
+            const ADMIN_ID = "426d48bb-fc97-4461-acc9-a8a59445b72d";
+            if (user && user.id === ADMIN_ID) {
+              window.location.href = '/admin'; // Force redirect to new strategic dashboard
+              return;
+            }
+
             if (user) {
               const { data, error } = await supabase
                 .from('exam_results')
