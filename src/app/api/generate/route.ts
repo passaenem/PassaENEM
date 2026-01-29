@@ -142,7 +142,8 @@ export async function POST(request: Request) {
         // 3. Parse and Adapt JSON
         let parsedData;
         try {
-            parsedData = JSON.parse(aiContent);
+            const cleanContent = aiContent.replace(/```json|```/g, '').trim();
+            parsedData = JSON.parse(cleanContent);
         } catch (e) {
             console.error("JSON Parse Error:", aiContent);
             throw new Error("Failed to parse AI response.");
