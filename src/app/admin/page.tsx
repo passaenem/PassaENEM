@@ -20,6 +20,7 @@ export default function AdminDashboardPage() {
 
     useEffect(() => {
         const init = async () => {
+            if (!supabase) return;
             const { data: { user } } = await supabase.auth.getUser();
             if (!user || user.id !== ADMIN_ID) {
                 router.push("/dashboard");
