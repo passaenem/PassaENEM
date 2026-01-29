@@ -5,7 +5,46 @@ import { createClient } from "@supabase/supabase-js";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { type, ...params } = body;
+        const { type, userId, ...params } = body;
+
+        // 0. Security & Validation
+        const quantity = Number(params.quantidade || 5);
+
+        // a) Validate Max Questions
+        if (quantity > 100) {
+            return NextResponse.json(
+                { success: false, error: "O limite máximo é de 100 questões por prova." },
+                { status: 400 }
+            );
+        }
+
+        // b) Validate Credits (Server-Side)
+        if (userId) {
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // Use Service Role for safe checking
+
+            if (supabaseUrl && supabaseKey) {
+                const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+
+                const { data: profile } = await supabaseAdmin
+                    .from('profiles')
+                    .select('credits, plan_type')
+                    .eq('id', userId)
+                    .single();
+
+                if (profile) {
+                    // Admin exemption
+                    const isAdmin = userId === "426d48bb-fc97-4461-acc9-a8a59445b72d" || profile.plan_type === 'admin';
+
+                    if (!isAdmin && profile.credits < quantity) {
+                        return NextResponse.json(
+                            { success: false, error: `Você não tem créditos suficientes. Necessário: ${quantity}, Atual: ${profile.credits}` },
+                            { status: 403 }
+                        );
+                    }
+                }
+            }
+        }
 
         // 1. Construct the Prompt
         let finalPrompt = PROMPTS.SYSTEM_BASE
@@ -17,8 +56,8 @@ export async function POST(request: Request) {
             .replace('{tema}', params.tema || params.disciplina || "Geral")
             .replace('{nivel}', params.nivel || "Médio")
             .replace('{nivel}', params.nivel || "Médio")
-            .replace('{quantidade}', params.quantidade || 5)
-            .replace('{quantidade}', params.quantidade || 5)
+            .replace('{quantidade}', quantity.toString())
+            .replace('{quantidade}', quantity.toString())
             .replace('{tempo}', params.tempo || 15)
             .replace('{tempo}', params.tempo || 15);
 
