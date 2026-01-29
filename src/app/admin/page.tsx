@@ -215,7 +215,7 @@ export default function AdminDashboardPage() {
                                         <TableCell>
                                             {user.plan_type === 'pro' ? (
                                                 <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/50">PRO</Badge>
-                                            ) : user.plan_type === 'admin' ? (
+                                            ) : user.id === ADMIN_ID || user.plan_type === 'admin' ? (
                                                 <Badge className="bg-red-500/10 text-red-400 border-red-500/50">ADMIN</Badge>
                                             ) : (
                                                 <Badge variant="secondary" className="bg-slate-800 text-slate-400">Free</Badge>
@@ -223,9 +223,13 @@ export default function AdminDashboardPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <span className={`font-bold ${user.credits < 20 ? 'text-red-400' : 'text-green-400'}`}>
-                                                    {user.credits}
-                                                </span>
+                                                {user.id === ADMIN_ID ? (
+                                                    <span className="font-bold text-violet-400">Infinito (∞)</span>
+                                                ) : (
+                                                    <span className={`font-bold ${user.credits < 20 ? 'text-red-400' : 'text-green-400'}`}>
+                                                        {user.credits}
+                                                    </span>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
