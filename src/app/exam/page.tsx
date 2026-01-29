@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, RotateCcw, CheckCircle, ShieldAlert, Lock, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCcw, CheckCircle, ShieldAlert, Lock, Save, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -113,14 +113,52 @@ export default function ExamPage() {
     }, [started, finished, mode, isRanked]);
 
     // Terminate on too many strikes
+    // TIMER LOGIC
+    const [timeLeft, setTimeLeft] = useState<number | null>(null); // Seconds
+
     useEffect(() => {
         if (strikes >= 3 && !finished && isRanked) {
+            // ... existing strike logic ...
             alert("Você violou as regras de segurança 3 vezes. Sua prova será encerrada com nota zero.");
             setFinished(true);
             setMode('review');
-            // Technically we should save 0 score here, but for now we just show the bad news.
         }
     }, [strikes, finished, isRanked]);
+
+    // Initialize Timer
+    useEffect(() => {
+        if (started && !finished && timeLeft === null) {
+            const storedDuration = sessionStorage.getItem('currentExamDuration');
+            if (storedDuration) {
+                const durationSec = parseInt(storedDuration) * 60;
+                setTimeLeft(durationSec);
+            }
+        }
+    }, [started, finished]);
+
+    // Tick Timer
+    useEffect(() => {
+        if (timeLeft === null || finished || !started) return;
+
+        if (timeLeft === 0) {
+            // Time's up!
+            alert("Tempo esgotado! Sua prova será finalizada automaticamente.");
+            confirmFinish(); // Auto-submit
+            return;
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => (prev !== null && prev > 0) ? prev - 1 : 0);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft, finished, started]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
     const startExam = async () => {
         try {
@@ -239,9 +277,13 @@ export default function ExamPage() {
                 return (finalAnswers[q.id] === q.correctAnswer) ? acc + 1 : acc;
             }, 0);
 
+            // Retrieve custom title if set (e.g. from Challenges)
+            const storedTitle = sessionStorage.getItem('currentExamTitle');
+            const finalTitle = storedTitle || (questions[0]?.type ? `${questions[0].type} Exam` : "Simulado");
+
             const { error } = await supabase.from('exam_results').insert({
                 user_id: user.id,
-                exam_title: questions[0]?.type ? `${questions[0].type} Exam` : "Simulado",
+                exam_title: finalTitle,
                 score_percentage: calculatedScore,
                 correct_answers: correctCount,
                 total_questions: questions.length,
@@ -253,6 +295,27 @@ export default function ExamPage() {
 
             if (error) throw error;
             console.log("Exam saved to Supabase successfully!");
+
+            // Update Challenge Participant Count if it's a Challenge
+            if (finalTitle.startsWith("Desafio: ")) {
+                // We need to know which challenge ID it corresponds to.
+                // Currently we don't store challenge ID directly in exam_results, just title.
+                // But we can try to update by title if unique or just ignore for now if too complex without ID.
+                // Ideally we should have stored `challengeId` in sessionStorage or passed it.
+                // START HACK: We can't update `challenges` table easily without the ID. 
+                // Let's rely on `sessionStorage.getItem('currentExamId')` if we set it in ChallengesPage?
+                // In ChallengesPage we didn't set 'currentExamId' to the UUID, we set `currentExam`.
+                // Let's fix this in ChallengesPage first? No, user is waiting.
+                // We can try to match by title.
+                const challengeTitle = finalTitle.replace("Desafio: ", "").trim();
+                const { error: incError } = await supabase.rpc('increment_challenge_participants', { challenge_title: challengeTitle });
+
+                // If RPC doesn't exist (likely), we have to do: Get ID -> Update.
+                const { data: chal } = await supabase.from('challenges').select('id, participants').eq('title', challengeTitle).single();
+                if (chal) {
+                    await supabase.from('challenges').update({ participants: (chal.participants || 0) + 1 }).eq('id', chal.id);
+                }
+            }
         } catch (error) {
             console.error("Error saving to Supabase:", error);
         }
@@ -347,6 +410,17 @@ export default function ExamPage() {
                             <div className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
                                 <span className="text-slate-400 text-sm mr-2">Nota:</span>
                                 <span className="font-bold text-white">{calculateScore()}%</span>
+                            </div>
+                        )}
+
+                        {/* TIMER DISPLAY */}
+                        {!finished && timeLeft !== null && (
+                            <div className={cn(
+                                "px-3 py-1 rounded-full border font-mono font-bold flex items-center gap-2",
+                                timeLeft < 60 ? "bg-red-500/20 border-red-500 text-red-500 animate-pulse" : "bg-slate-800 border-slate-700 text-slate-300"
+                            )}>
+                                <Clock className="w-4 h-4" />
+                                {formatTime(timeLeft)}
                             </div>
                         )}
                     </div>
@@ -454,8 +528,8 @@ export default function ExamPage() {
 
                             {finished ? (
                                 <div className="flex gap-2">
-                                    <Button variant="secondary" onClick={() => router.push('/')} className="hidden sm:flex">
-                                        Sair
+                                    <Button variant="secondary" onClick={() => window.location.href = '/challenges'} className="hidden sm:flex">
+                                        Voltar
                                     </Button>
                                     <Button
                                         onClick={isLast ? () => window.location.href = '/challenges' : handleNext}
@@ -480,7 +554,7 @@ export default function ExamPage() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     );
 }

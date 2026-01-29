@@ -5,24 +5,184 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Clock, Users, Star, ArrowRight, Wallet, AlertCircle } from "lucide-react";
+import { Trophy, Clock, Users, Star, ArrowRight, Wallet, AlertCircle, Trash2, CheckCircle } from "lucide-react";
 import { activeChallenges, finishedChallenges, userPerformance, Challenge } from "@/lib/challenges";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase } from "@/lib/supabase";
+
+const ADMIN_ID = "426d48bb-fc97-4461-acc9-a8a59445b72d";
 
 export default function ChallengesPage() {
     const [activeTab, setActiveTab] = useState("active");
+    const [dbChallenges, setDbChallenges] = useState<Challenge[]>([]);
+    const [myResults, setMyResults] = useState<any[]>([]); // Store user's exam results
+    const [user, setUser] = useState<any>(null);
 
-    // Load custom challenges from LocalStorage (Mock integration)
-    const [customChallenges, setCustomChallenges] = useState<Challenge[]>([]);
-
+    // Initial Data Load
     useEffect(() => {
-        const stored = localStorage.getItem("custom_challenges");
-        if (stored) {
-            setCustomChallenges(JSON.parse(stored));
-        }
+        const loadData = async () => {
+            if (!supabase) return;
+
+            // 1. Get User
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+
+            // 2. Fetch ALL Challenges (Active & Finished)
+            const { data: challengesData } = await supabase
+                .from('challenges')
+                .select('*')
+                // .eq('status', 'active') // Fetching ALL now
+                .order('created_at', { ascending: false });
+
+            if (challengesData) {
+                // Fetch Rankings for each challenge
+                const challengesWithRanking = await Promise.all(challengesData.map(async (d: any) => {
+                    // Fetch Top 3 Results for this challenge
+                    const { data: topResults } = await supabase
+                        .from('exam_results')
+                        .select('user_id, score_percentage, correct_answers, created_at')
+                        .eq('exam_title', `Desafio: ${d.title}`)
+                        .order('score_percentage', { ascending: false })
+                        .order('created_at', { ascending: true }) // First to finish wins tie
+                        .limit(3);
+
+                    let top3 = [];
+                    if (topResults && topResults.length > 0) {
+                        // Fetch names manually (assuming no strict FK setup or to be safe)
+                        const userIds = topResults.map(r => r.user_id);
+                        const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', userIds);
+
+                        top3 = topResults.map(r => {
+                            const profile = profiles?.find(p => p.id === r.user_id);
+                            return {
+                                name: profile?.full_name || "Usuário",
+                                score: r.correct_answers, // "pontuação cada pergunta vale um ponto" -> correct_answers
+                                time: "0" // Placeholder for now, or calculate if we had start/end time. 
+                                // User asked "traga nome e pontuação". Time is bonus.
+                            };
+                        });
+                    }
+
+                    return {
+                        id: d.id,
+                        title: d.title,
+                        description: d.description,
+                        area: d.area,
+                        difficulty: d.difficulty,
+                        questionsCount: d.questions_count,
+                        participants: d.participants || 0,
+                        timeLeft: d.time_left || "Indefinido",
+                        status: "active",
+                        prize: d.prize,
+                        top3: top3,
+                        questions_json: d.questions_json || [],
+                        duration_minutes: d.duration_minutes
+                    };
+                }));
+
+                setDbChallenges(challengesWithRanking);
+            }
+
+            // 3. Fetch My Results (Performance History)
+            if (user) {
+                const { data: resultsData } = await supabase
+                    .from('exam_results')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .ilike('exam_title', 'Desafio:%') // Only fetch Challenge results
+                    .order('created_at', { ascending: false });
+
+                if (resultsData) {
+                    setMyResults(resultsData);
+                }
+            }
+        };
+
+        loadData();
     }, []);
 
-    const allActive = [...activeChallenges, ...customChallenges];
+    const handleDelete = async (id: string) => {
+        if (!confirm("Tem certeza que deseja excluir este desafio?")) return;
+        if (supabase) {
+            const { error } = await supabase.from('challenges').delete().eq('id', id);
+            if (!error) {
+                setDbChallenges(prev => prev.filter(c => c.id !== id));
+            } else {
+                alert("Erro ao excluir. Verifique se você é administrador.");
+            }
+        }
+    };
+
+    const handleFinishChallenge = async (id: string) => {
+        if (!confirm("Tem certeza que deseja FINALIZAR este desafio agora? Ele sairá da lista de ativos.")) return;
+        if (supabase) {
+            const { error } = await supabase.from('challenges').update({ status: 'finished' }).eq('id', id);
+            if (!error) {
+                alert("Desafio finalizado!");
+                // Remove from active list locally to update UI instantly
+                setDbChallenges(prev => prev.filter(c => c.id !== id));
+                // Ideally append to finished list but a refresh handles that usually. 
+                // For now just removing from active view is good feedback.
+            } else {
+                alert("Erro: " + error.message);
+            }
+        }
+    };
+
+    const handleStartChallenge = (challenge: Challenge) => {
+        // 1. Utilize questions stored in the challenge object (fetched from DB)
+        let examData = challenge.questions_json;
+
+        // Fallback for old challenges or if generation failed
+        if (!examData || examData.length === 0) {
+            console.warn("No questions found for this challenge. Using mock.");
+            // Fallback Mock
+            examData = [{
+                id: `q-${challenge.id}-1`,
+                type: "ENEM",
+                question: `(Questão Desafio) Sobre ${challenge.area}: Qual a principal característica deste tema?`,
+                options: ["Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E"],
+                correctAnswer: 2,
+                explanation: "Explicação detalhada sobre o tema do desafio.",
+                difficulty: challenge.difficulty,
+                topic: challenge.area
+            }];
+        }
+
+        // 2. Setup Session
+        sessionStorage.setItem('currentExam', JSON.stringify(examData));
+        sessionStorage.setItem('currentExamTitle', `Desafio: ${challenge.title}`); // IMPORTANT: For identifying result later
+        sessionStorage.setItem('currentExamDuration', (challenge.duration_minutes || 60).toString());
+        sessionStorage.setItem('isRanked', 'true');
+
+        // 3. Redirect
+        window.location.href = '/exam';
+    };
+
+    const handleEdit = (challenge: Challenge) => {
+        // Encode the challenge object to pass to the admin page or just pass ID if we implement fetching there.
+        // Since we already built the "populate form" logic in Admin page via state/props? 
+        // Admin page currently DOES NOT accept query params for editing. It handles it via internal state which is lost on refresh/redirect.
+        // We need to modify Admin page to accept a query param OR just use localStorage for now to pass "challengeToEdit".
+        // Let's use localStorage for simplicity as we did with exams.
+
+        sessionStorage.setItem('challengeToEdit', JSON.stringify({
+            id: challenge.id,
+            title: challenge.title,
+            description: challenge.description,
+            area: challenge.area,
+            difficulty: challenge.difficulty,
+            questions_count: challenge.questionsCount,
+            prize: challenge.prize,
+            time_left: challenge.timeLeft,
+            participants: challenge.participants
+        }));
+        window.location.href = '/admin/create-challenge?mode=edit';
+    };
+
+    // Filter for Tabs
+    const activeList = dbChallenges.filter(c => c.status === 'active');
+    const finishedList = dbChallenges.filter(c => c.status === 'finished');
 
     return (
         <div className="space-y-8 animate-fade-in-up">
@@ -42,7 +202,7 @@ export default function ChallengesPage() {
 
                 {/* DESAFIOS ATIVOS */}
                 <TabsContent value="active" className="space-y-4">
-                    {allActive.length === 0 ? (
+                    {activeList.length === 0 ? (
                         <Alert>
                             <AlertCircle className="h-4 w-4" />
                             <AlertTitle>Sem desafios no momento</AlertTitle>
@@ -50,17 +210,36 @@ export default function ChallengesPage() {
                         </Alert>
                     ) : (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {allActive.map((challenge) => (
-                                <Card key={challenge.id} className="flex flex-col border-slate-800 bg-slate-900/50 hover:bg-slate-900 transition-colors">
-                                    <CardHeader>
-                                        <div className="flex justify-between items-start mb-2">
+                            {activeList.map((challenge) => (
+                                <Card key={challenge.id} className="flex flex-col border-slate-800 bg-slate-900/50 hover:bg-slate-900 transition-colors relative group">
+                                    {/* Admin Actions - Absolute Top Right */}
+                                    {user && user.id === ADMIN_ID && challenge.id.length > 10 && (
+                                        <div className="absolute top-2 right-2 flex gap-1 z-20">
+                                            <Button variant="secondary" size="icon" className="h-8 w-8 bg-emerald-900/60 hover:bg-emerald-900 text-emerald-400 border border-emerald-800" onClick={(e) => { e.stopPropagation(); handleFinishChallenge(challenge.id); }} title="Finalizar Agora">
+                                                <div className="h-4 w-4">🏁</div>
+                                            </Button>
+                                            <Button variant="secondary" size="icon" className="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-slate-200" onClick={(e) => { e.stopPropagation(); handleEdit(challenge); }} title="Editar">
+                                                <div className="h-4 w-4">✎</div> {/* Using simple icon for now or we can import Edit */}
+                                            </Button>
+                                            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleDelete(challenge.id); }} title="Excluir">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    <CardHeader className={user && user.id === ADMIN_ID ? "pt-12" : ""}>
+                                        <div className="absolute top-4 left-4 p-2 bg-slate-800 rounded-full border border-slate-700">
+                                            <Trophy className="w-5 h-5 text-amber-500" />
+                                        </div>
+                                        {/* Badges - Adjusted to not overlap with Admin Buttons */}
+                                        <div className="flex flex-wrap gap-2 mb-2 ml-12">
                                             <Badge variant={challenge.difficulty === 'Insano' ? 'destructive' : challenge.difficulty === 'Difícil' ? 'default' : 'secondary'}>
                                                 {challenge.difficulty}
                                             </Badge>
                                             {challenge.prize && (
                                                 <Badge variant="outline" className="border-green-500 text-green-400 gap-1">
                                                     <Wallet className="w-3 h-3" />
-                                                    {challenge.prize}
+                                                    {challenge.prize.startsWith("R$") ? challenge.prize : `R$ ${challenge.prize}`}
                                                 </Badge>
                                             )}
                                         </div>
@@ -68,62 +247,48 @@ export default function ChallengesPage() {
                                         <CardDescription className="line-clamp-2">{challenge.description}</CardDescription>
                                     </CardHeader>
                                     <CardContent className="flex-1 space-y-4">
-                                        <div className="flex items-center text-sm text-slate-400 gap-4">
-                                            <div className="flex items-center gap-1">
-                                                <Users className="w-4 h-4" />
-                                                {challenge.participants}
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center text-sm text-slate-400 gap-4">
+                                                <div className="flex items-center gap-1" title="Participantes"><Users className="w-4 h-4" /> {challenge.participants}</div>
+                                                <div className="flex items-center gap-1" title="Tempo Restante"><Clock className="w-4 h-4" /> {challenge.timeLeft}</div>
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="w-4 h-4" />
-                                                {challenge.timeLeft}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-4 h-4 text-yellow-500" />
-                                                Top 1: {challenge.top3[0]?.score || 0}
-                                            </div>
-                                        </div>
 
-                                        {/* Leaderboard Preview */}
-                                        <div className="bg-slate-950 rounded-lg p-3 text-sm space-y-2 border border-slate-800">
-                                            <p className="text-xs text-slate-500 font-semibold uppercase mb-2">Ranking Atual (Top 3)</p>
-                                            {challenge.top3.map((p, i) => (
-                                                <div key={i} className="flex justify-between items-center">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-300" : "text-amber-700"}>
-                                                            <Trophy className="w-3 h-3" />
-                                                        </span>
-                                                        <span className="truncate max-w-[100px]">{p.name}</span>
+                                            {/* RANKING DISPLAY - TOP 3 */}
+                                            {challenge.top3 && challenge.top3.length > 0 && (
+                                                <div className="mt-3 bg-slate-950/50 rounded-md p-2 border border-slate-800">
+                                                    <p className="text-xs font-bold text-slate-400 flex items-center gap-1 mb-2">
+                                                        <Trophy className="w-3 h-3 text-yellow-500" /> Top 3 Ranking
+                                                    </p>
+                                                    <div className="space-y-1">
+                                                        {challenge.top3.map((rank, idx) => (
+                                                            <div key={idx} className="flex justify-between items-center text-xs">
+                                                                <span className="text-slate-300">
+                                                                    <span className={`font-bold mr-1 ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-400' : 'text-amber-600'}`}>#{idx + 1}</span>
+                                                                    {rank.name.split(' ')[0]} {/* First Name only for space */}
+                                                                </span>
+                                                                <span className="font-mono text-violet-400 font-bold">{rank.score} pts</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                    <span className="font-mono text-slate-400">{p.score}pts</span>
                                                 </div>
-                                            ))}
+                                            )}
+
+                                            <div className="flex items-center text-xs text-slate-500 gap-3 border-t border-slate-800 pt-2 mt-2">
+                                                <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-300">{challenge.area}</span>
+                                                <span>{challenge.questionsCount} Questões</span>
+                                            </div>
                                         </div>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button
-                                            className="w-full bg-violet-600 hover:bg-violet-700 gap-2"
-                                            onClick={() => {
-                                                // 1. Create a simplified exam object from the challenge
-                                                // In a real app, this would fetch specific questions from an API
-                                                const mockQuestions = Array.from({ length: challenge.questionsCount }).map((_, i) => ({
-                                                    id: `q-${challenge.id}-${i}`,
-                                                    type: "ENEM",
-                                                    question: `Questão ${i + 1} do desafio ${challenge.title}. (Simulação)`,
-                                                    options: ["Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E"],
-                                                    correctAnswer: 0,
-                                                    explanation: "Explicação gerada automaticamente para o desafio.",
-                                                    difficulty: challenge.difficulty,
-                                                    topic: challenge.area
-                                                }));
-
-                                                sessionStorage.setItem('currentExam', JSON.stringify(mockQuestions));
-                                                sessionStorage.setItem('currentExamId', `challenge-${challenge.id}`);
-                                                sessionStorage.setItem('isRanked', 'true'); // FLAG IMPORTANTE
-                                                window.location.href = '/exam';
-                                            }}
-                                        >
-                                            Participar Agora <ArrowRight className="w-4 h-4" />
-                                        </Button>
+                                        {myResults.some(r => r.exam_title === `Desafio: ${challenge.title}`) ? (
+                                            <Button className="w-full bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700" disabled>
+                                                <CheckCircle className="w-4 h-4 mr-2" /> Já Participou
+                                            </Button>
+                                        ) : (
+                                            <Button className="w-full bg-violet-600 hover:bg-violet-700 gap-2" onClick={() => handleStartChallenge(challenge)}>
+                                                Participar Agora <ArrowRight className="w-4 h-4" />
+                                            </Button>
+                                        )}
                                     </CardFooter>
                                 </Card>
                             ))}
@@ -131,27 +296,46 @@ export default function ChallengesPage() {
                     )}
                 </TabsContent>
 
-                {/* MEU DESEMPENHO */}
+                {/* MEU DESEMPENHO (REAL DATA) */}
                 <TabsContent value="performance" className="space-y-4">
-                    <Card>
+                    <Card className="bg-slate-900 border-slate-800">
                         <CardHeader>
                             <CardTitle>Histórico de Participação</CardTitle>
-                            <CardDescription>Veja seus resultados nos desafios passados.</CardDescription>
+                            <CardDescription>Seus resultados nos desafios que você participou.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {userPerformance.map((perf, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 border rounded-lg bg-slate-900 border-slate-800">
-                                        <div>
-                                            <h4 className="font-bold">{perf.title}</h4>
-                                            <p className="text-sm text-muted-foreground">{perf.date} • {perf.time}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-2xl font-bold text-violet-400">{perf.score}%</div>
-                                            <p className="text-xs text-muted-foreground">Posição: #{perf.position} de {perf.totalParticipants}</p>
-                                        </div>
+                                {myResults.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Você ainda não participou de nenhum desafio.
                                     </div>
-                                ))}
+                                ) : (
+                                    myResults.map((result, i) => (
+                                        <div key={result.id || i} className="flex items-center justify-between p-4 border rounded-lg bg-slate-950 border-slate-800">
+                                            <div>
+                                                <h4 className="font-bold text-white">{result.exam_title}</h4>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {new Date(result.created_at).toLocaleDateString()} • {result.correct_answers}/{result.total_questions} Acertos
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-right">
+                                                    <div className="text-2xl font-bold text-violet-400">{result.score_percentage}%</div>
+                                                </div>
+                                                {/* Logic to hide/disable answer key if challenge is still active */}
+                                                {activeList.some(c => `Desafio: ${c.title}` === result.exam_title) ? (
+                                                    <Button variant="outline" size="sm" disabled title="Gabarito disponível após o fim do desafio">
+                                                        <Lock className="w-3 h-3 mr-2" /> Gabarito Bloqueado
+                                                    </Button>
+                                                ) : (
+                                                    <Button variant="outline" size="sm" onClick={() => handleViewResult(result)}>
+                                                        Ver Gabarito
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -160,36 +344,58 @@ export default function ChallengesPage() {
                 {/* FINALIZADOS */}
                 <TabsContent value="finished">
                     <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                        {finishedChallenges.map((challenge) => (
-                            <Card key={challenge.id} className="flex flex-col border-slate-800 bg-slate-900/20 grayscale hover:grayscale-0 transition-all cursor-pointer">
-                                <CardHeader>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <Badge variant="outline">Finalizado</Badge>
-                                        <span className="text-xs text-slate-500">{challenge.participants} participantes</span>
-                                    </div>
-                                    <CardTitle className="text-xl">{challenge.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="bg-slate-950 rounded-lg p-3 text-sm space-y-2 border border-slate-800">
-                                        <p className="text-xs text-slate-500 font-semibold uppercase mb-2">Vencedores</p>
-                                        {challenge.top3.map((p, i) => (
-                                            <div key={i} className="flex justify-between items-center text-slate-400">
-                                                <div className="flex items-center gap-2">
-                                                    <Trophy className="w-3 h-3" />
-                                                    <span>{p.name}</span>
+                        {finishedList.map((challenge) => {
+                            // Check if current user participated in this challenge
+                            // We match loosely by title "Desafio: [Challenge Title]"
+                            const userResult = myResults.find(r => r.exam_title === `Desafio: ${challenge.title}`);
+
+                            return (
+                                <Card key={challenge.id} className="flex flex-col border-slate-800 bg-slate-900/20 hover:bg-slate-900/40 transition-all">
+                                    <CardHeader>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <Badge variant="outline">Finalizado</Badge>
+                                            <span className="text-xs text-slate-500">{challenge.participants} part.</span>
+                                        </div>
+                                        <CardTitle className="text-xl text-slate-300">{challenge.title}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex flex-col gap-2">
+                                            {/* RANKING DISPLAY - TOP 3 */}
+                                            {challenge.top3 && challenge.top3.length > 0 && (
+                                                <div className="bg-slate-950/50 rounded-md p-2 border border-slate-800">
+                                                    <p className="text-xs font-bold text-slate-400 flex items-center gap-1 mb-2">
+                                                        <Trophy className="w-3 h-3 text-yellow-500" /> Resultados Finais
+                                                    </p>
+                                                    <div className="space-y-1">
+                                                        {challenge.top3.map((rank, idx) => (
+                                                            <div key={idx} className="flex justify-between items-center text-xs">
+                                                                <span className="text-slate-300">
+                                                                    <span className={`font-bold mr-1 ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-400' : 'text-amber-600'}`}>#{idx + 1}</span>
+                                                                    {rank.name.split(' ')[0]}
+                                                                </span>
+                                                                <span className="font-mono text-violet-400 font-bold">{rank.score} pts</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                                <span>{p.score}pts</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                                <CardFooter>
-                                    <Button variant="secondary" className="w-full">
-                                        Ver Resultados & Gabarito
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        ))}
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter>
+                                        {userResult ? (
+                                            <Button variant="secondary" className="w-full gap-2" onClick={() => handleViewResult(userResult)}>
+                                                <CheckCircle className="w-4 h-4 text-green-500" /> Ver Meu Resultado ({userResult.score_percentage}%)
+                                            </Button>
+                                        ) : (
+                                            <Button variant="outline" className="w-full border-slate-700 text-slate-500 cursor-not-allowed">
+                                                Não Participou
+                                            </Button>
+                                            /* Optionally enable "Ver Gabarito" (generic) here later */
+                                        )}
+                                    </CardFooter>
+                                </Card>
+                            )
+                        })}
                     </div>
                 </TabsContent>
             </Tabs>

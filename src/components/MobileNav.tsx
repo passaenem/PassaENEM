@@ -14,8 +14,9 @@ const navigation = [
     { name: "Gerador Concursos", href: "/generator/concurso", icon: Briefcase },
     { name: "Minhas Provas", href: "/history", icon: History },
     { name: "Desafios", href: "/challenges", icon: Trophy },
-    { name: "Criar Desafio (Admin)", href: "/admin/create-challenge", icon: Settings },
 ];
+
+const ADMIN_ID = "426d48bb-fc97-4461-acc9-a8a59445b72d";
 
 export function MobileNav() {
     const [open, setOpen] = useState(false);
@@ -75,6 +76,21 @@ export function MobileNav() {
                                 </Link>
                             );
                         })}
+                        {user && user.id === ADMIN_ID && (
+                            <Link
+                                href="/admin/create-challenge"
+                                onClick={() => setOpen(false)}
+                                className={cn(
+                                    "flex items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
+                                    pathname === "/admin/create-challenge"
+                                        ? "bg-primary/10 text-primary"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )}
+                            >
+                                <Settings className={cn("mr-3 h-5 w-5", pathname === "/admin/create-challenge" ? "text-primary" : "text-muted-foreground")} />
+                                Criar Desafio (Admin)
+                            </Link>
+                        )}
                         <div className="pt-4 border-t border-slate-800 mt-4">
                             {user ? (
                                 <div className="flex items-center justify-between px-3">

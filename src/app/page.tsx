@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, CheckCircle, TrendingUp, Brain, ArrowRight } from "lucide-react";
+import { GraduationCap, CheckCircle, TrendingUp, Brain, ArrowRight, Quote } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function LandingPage() {
     const router = useRouter();
@@ -100,9 +101,16 @@ export default function LandingPage() {
                 </div>
 
                 <div className="mt-12 flex items-center gap-4 text-sm text-slate-500 animate-in fade-in zoom-in duration-1000 delay-500">
-                    <div className="flex -space-x-2">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-950" />
+                    <div className="flex -space-x-4">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="relative w-10 h-10 rounded-full border-2 border-slate-950 overflow-hidden">
+                                <Image
+                                    src={`/avatars/avatar-${i}.png`}
+                                    alt={`Student ${i}`}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
                         ))}
                     </div>
                     <p>+1.000 estudantes já estão usando</p>
@@ -148,6 +156,70 @@ export default function LandingPage() {
                             <h3 className="text-xl font-bold mb-2">Correção com IA</h3>
                             <p className="text-slate-400">
                                 Entenda onde errou com explicações detalhadas. Aprenda enquanto compete e aumente suas chances de ganhar.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Testimonials Section */}
+            <section className="py-20 bg-slate-950 relative overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 blur-[100px] rounded-full -z-10" />
+
+                <div className="container mx-auto px-4">
+                    <h2 className="text-3xl font-bold text-center mb-16 animate-in fade-in slide-in-from-bottom-5">
+                        O que nossos alunos dizem
+                    </h2>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {/* Testimonial 1 */}
+                        <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-violet-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
+                            <Quote className="h-8 w-8 text-violet-500/20 absolute top-6 right-6" />
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
+                                    <Image src="/avatars/avatar-1.png" alt="Mariana Silva" fill className="object-cover" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-white">Mariana Silva</h4>
+                                    <p className="text-xs text-green-400 font-medium">Aprovada em Medicina</p>
+                                </div>
+                            </div>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                "Eu sempre tive dificuldade em focar, mas os desafios semanais me deram a motivação que eu precisava. Ganhar meu primeiro Pix estudando foi surreal!"
+                            </p>
+                        </div>
+
+                        {/* Testimonial 2 */}
+                        <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-green-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
+                            <Quote className="h-8 w-8 text-green-500/20 absolute top-6 right-6" />
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
+                                    <Image src="/avatars/avatar-4.png" alt="Ricardo Oliveira" fill className="object-cover" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-white">Ricardo Oliveira</h4>
+                                    <p className="text-xs text-green-400 font-medium">1º Lugar no Simulado</p>
+                                </div>
+                            </div>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                "A correção com IA mudou meu jeito de estudar. Antes eu errava e não sabia o porquê, agora tenho a explicação detalhada na hora. Vale muito a pena."
+                            </p>
+                        </div>
+
+                        {/* Testimonial 3 */}
+                        <div className="p-8 rounded-2xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm relative group hover:border-blue-500/30 transition-all duration-300 hover:transform hover:-translate-y-1">
+                            <Quote className="h-8 w-8 text-blue-500/20 absolute top-6 right-6" />
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-700">
+                                    <Image src="/avatars/avatar-3.png" alt="Beatriz Costa" fill className="object-cover" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-white">Beatriz Costa</h4>
+                                    <p className="text-xs text-green-400 font-medium">Aprovada no ENEM</p>
+                                </div>
+                            </div>
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                "Plataforma incrível! O design é lindo e super rápido. Os desafios semanais criam uma competição saudável que te faz querer estudar mais todo dia."
                             </p>
                         </div>
                     </div>

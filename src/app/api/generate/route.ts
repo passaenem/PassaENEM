@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PROMPTS } from "@/lib/prompts";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
     try {
@@ -32,9 +33,7 @@ export async function POST(request: Request) {
             throw new Error("API Key missing");
         }
 
-        const modelName = "gemini-2.5-flash";
-        console.log(`Using Model: ${modelName}`);
-        console.log(`API Key (First 5 chars): ${apiKey.substring(0, 5)}...`);
+        const modelName = "gemini-2.5-flash"; // Or 2.0-flash experimental if available, sticking to known working
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
             method: "POST",
@@ -51,6 +50,35 @@ export async function POST(request: Request) {
                 }
             })
         });
+
+        // --- SUPABASE LOGGING (FIRE AND FORGET) ---
+        try {
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+            const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+            if (supabaseUrl && supabaseKey) {
+                const supabase = createClient(supabaseUrl, supabaseKey);
+                // Try to get user ID if sent in headers or body, but for now just log the action
+                // Ideally we'd parse cookies here but let's keep it simple for speed
+                const userId = body.userId || null;
+
+                await supabase.from('app_usage_logs').insert([
+                    {
+                        user_id: userId,
+                        action: 'ai_generation',
+                        details: {
+                            type,
+                            topic: params.tema || params.disciplina,
+                            questions_count: params.quantidade,
+                            model: modelName
+                        }
+                    }
+                ]);
+            }
+        } catch (logErr) {
+            console.warn("Failed to log usage:", logErr);
+            // Don't fail the request if logging fails
+        }
+        // -------------------------------------------
 
         if (!response.ok) {
             const errText = await response.text();
