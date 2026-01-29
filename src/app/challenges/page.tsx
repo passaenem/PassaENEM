@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Clock, Users, Star, ArrowRight, Wallet, AlertCircle, Trash2, CheckCircle } from "lucide-react";
+import { Trophy, Clock, Users, Star, ArrowRight, Wallet, AlertCircle, Trash2, CheckCircle, Lock } from "lucide-react";
 import { activeChallenges, finishedChallenges, userPerformance, Challenge } from "@/lib/challenges";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/lib/supabase";
@@ -38,6 +38,8 @@ export default function ChallengesPage() {
                 // Fetch Rankings for each challenge
                 const challengesWithRanking = await Promise.all(challengesData.map(async (d: any) => {
                     // Fetch Top 3 Results for this challenge
+                    if (!supabase) return { ...d, top3: [] }; // Handle null case safely
+
                     const { data: topResults } = await supabase
                         .from('exam_results')
                         .select('user_id, score_percentage, correct_answers, created_at')
@@ -46,7 +48,7 @@ export default function ChallengesPage() {
                         .order('created_at', { ascending: true }) // First to finish wins tie
                         .limit(3);
 
-                    let top3 = [];
+                    let top3: { name: string; score: any; time: string }[] = [];
                     if (topResults && topResults.length > 0) {
                         // Fetch names manually (assuming no strict FK setup or to be safe)
                         const userIds = topResults.map(r => r.user_id);
@@ -178,6 +180,17 @@ export default function ChallengesPage() {
             participants: challenge.participants
         }));
         window.location.href = '/admin/create-challenge?mode=edit';
+    };
+
+    const handleViewResult = (result: any) => {
+        if (!result.questions_json) {
+            alert("Erro: Dados da prova não encontrados.");
+            return;
+        }
+        sessionStorage.setItem('currentExam', JSON.stringify(result.questions_json));
+        sessionStorage.setItem('examMode', 'view');
+        sessionStorage.setItem('currentExamTitle', result.exam_title);
+        window.location.href = '/exam';
     };
 
     // Filter for Tabs
