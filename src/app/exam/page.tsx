@@ -372,8 +372,8 @@ export default function ExamPage() {
     };
 
     // Main Layout Logic
-    const content = (
-        <div className={cn(isRanked ? "max-w-3xl mx-auto space-y-6" : "")}>
+    const content = <div className={cn("flex flex-col min-h-full", isRanked ? "max-w-3xl mx-auto" : "")}>
+        <div className="flex-1 space-y-6">
 
             {/* STRIKE WARNING BANNER */}
             {strikes > 0 && !finished && (
@@ -525,50 +525,50 @@ export default function ExamPage() {
                 </CardContent>
             </Card>
 
-            {/* Sticky Bottom Navigation Bar */}
-            <div className={cn(
-                "sticky bottom-0 left-0 right-0 p-4 bg-slate-950/80 backdrop-blur-md border-t border-slate-800 flex justify-center z-50",
-                isRanked ? "absolute" : "" // Handle positioning in overlay
-            )}>
-                <div className="w-full max-w-3xl flex justify-between items-center gap-4">
-                    <Button
-                        variant="outline"
-                        onClick={handlePrev}
-                        disabled={isFirst}
-                        className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Anterior
-                    </Button>
+        </div>
+        {/* Sticky Bottom Navigation Bar */}
+        <div className={cn(
+            "sticky bottom-0 left-0 right-0 p-4 bg-slate-950 border-t border-slate-800 flex justify-center z-50",
+            isRanked ? "" : ""
+        )}>
+            <div className="w-full max-w-3xl flex justify-between items-center gap-4">
+                <Button
+                    variant="outline"
+                    onClick={handlePrev}
+                    disabled={isFirst}
+                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Anterior
+                </Button>
 
-                    {finished ? (
-                        <div className="flex gap-2">
-                            <Button variant="secondary" onClick={() => window.location.href = isRanked ? '/challenges' : '/history'} className="hidden sm:flex">
-                                Voltar
-                            </Button>
-                            <Button
-                                onClick={isLast ? () => window.location.href = isRanked ? '/challenges' : '/history' : handleNext}
-                                disabled={(isLast && mode === 'view')}
-                                className={cn(isLast ? "bg-violet-600" : "bg-slate-800")}
-                            >
-                                {isLast ? 'Finalizar' : 'Próxima'}
-                                {!isLast && <ArrowRight className="w-4 h-4 ml-2" />}
-                                {isLast && mode !== 'view' && !isRanked && <RotateCcw className="w-4 h-4 ml-2" />}
-                            </Button>
-                        </div>
-                    ) : (
-                        <Button
-                            onClick={() => isLast ? setShowFinishConfirmation(true) : handleNext()}
-                            className="bg-violet-600 hover:bg-violet-700 text-white px-8"
-                        >
-                            {isLast ? "Finalizar Prova" : "Próxima"}
-                            {!isLast && <ArrowRight className="w-4 h-4 ml-2" />}
-                            {isLast && <CheckCircle className="w-4 h-4 ml-2" />}
+                {finished ? (
+                    <div className="flex gap-2">
+                        <Button variant="secondary" onClick={() => window.location.href = isRanked ? '/challenges' : '/history'}>
+                            Voltar
                         </Button>
-                    )}
-                </div>
+                        {!isLast && (
+                            <Button
+                                onClick={handleNext}
+                                className="bg-slate-800"
+                            >
+                                Próxima <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                        )}
+                    </div>
+                ) : (
+                    <Button
+                        onClick={() => isLast ? setShowFinishConfirmation(true) : handleNext()}
+                        className="bg-violet-600 hover:bg-violet-700 text-white px-8"
+                    >
+                        {isLast ? "Finalizar Prova" : "Próxima"}
+                        {!isLast && <ArrowRight className="w-4 h-4 ml-2" />}
+                        {isLast && <CheckCircle className="w-4 h-4 ml-2" />}
+                    </Button>
+                )}
             </div>
         </div>
+    </div>
     );
 
     return (
