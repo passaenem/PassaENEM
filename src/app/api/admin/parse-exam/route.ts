@@ -5,18 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
 export const runtime = 'nodejs'; // Enforce Node.js runtime for this route
 
-// Text Extraction Helper
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-    try {
-        const pdfModule = await import('pdf-parse');
-        const pdf = (pdfModule as any).default || pdfModule;
-        const data = await pdf(buffer);
-        return data.text;
-    } catch (error: any) {
-        console.error("PDF-Parse Error:", error);
-        throw new Error(`Failed to extract text from PDF: ${error.message}`);
-    }
-}
+const PDF_CO_API_KEY = "leandropiresnunes64@gmail.com_VB9NK4D1mW21vvlZqQuuI4tWAmcSz1mvXgdPFxrrPcnTnMv52AYt4De42B0Iu04O";
 
 export async function POST(request: Request) {
     try {
@@ -27,35 +16,55 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "Gabarito URL is required." }, { status: 400 });
         }
 
-        // 1. Fetch Gabarito PDF
-        const gabaritoResponse = await fetch(gabaritoUrl);
-        if (!gabaritoResponse.ok) throw new Error("Failed to fetch Gabarito PDF");
+        // 1. Text Extraction via PDF.co
+        // We use their API to convert the remote PDF URL to text directly.
+        // No need to download the file locally first.
 
-        const gabaritoArrayBuffer = await gabaritoResponse.arrayBuffer();
-        const gabaritoBuffer = Buffer.from(gabaritoArrayBuffer);
+        const pdfCoResponse = await fetch("https://api.pdf.co/v1/pdf/convert/to/text", {
+            method: "POST",
+            headers: {
+                "x-api-key": PDF_CO_API_KEY,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                url: gabaritoUrl,
+                inline: true,
+                async: false
+            })
+        });
 
-        // 2. Extract Text (using pdf-parse)
-        // Gabaritos are usually simple tables/lists, pdf-parse handles them well enough for AI to clean up.
-        const gabaritoText = await extractTextFromPDF(gabaritoBuffer);
-
-        if (!gabaritoText || gabaritoText.length < 10) {
-            throw new Error("Gabarito PDF appears empty or unreadable.");
+        if (!pdfCoResponse.ok) {
+            const errText = await pdfCoResponse.text();
+            throw new Error(`PDF.co API Error (${pdfCoResponse.status}): ${errText}`);
         }
 
-        // 3. Process with Gemini Pro (Text Only)
+        const pdfCoData = await pdfCoResponse.json();
+
+        if (pdfCoData.error) {
+            throw new Error(`PDF.co Error: ${pdfCoData.message}`);
+        }
+
+        const gabaritoText = pdfCoData.body;
+
+        if (!gabaritoText || gabaritoText.length < 10) {
+            throw new Error("Gabarito Text appears empty.");
+        }
+
+        // 2. Process with Gemini Pro (Text Only)
         // Using 'gemini-pro' which is widely available and stable for text.
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         const prompt = `
-            Tarefa: Extrair o GABARITO deste texto obtido de um PDF.
+            Tarefa: Extrair o GABARITO deste texto obtido da conversão de um PDF.
             
-            Texto do PDF:
+            Texto:
             """
-            ${gabaritoText.slice(0, 10000)}
+            ${gabaritoText.slice(0, 15000)}
             """
             
             Instruções:
             - Identifique o número da questão e a alternativa correta (A, B, C, D, E).
+            - Ignore cabeçalhos, rodapés ou textos irrelevantes.
             - Retorne APENAS um JSON válido.
             - Formato: { "answers": [{ "q": 1, "a": "A" }, ...] }
         `;
@@ -64,7 +73,7 @@ export async function POST(request: Request) {
         const response = await result.response;
         const text = response.text();
 
-        // 4. Parse JSON
+        // 3. Parse JSON
         const cleanJson = text.replace(/```json|```/g, '').trim();
         const parsedData = JSON.parse(cleanJson);
 
