@@ -372,7 +372,7 @@ export default function ExamPage() {
     };
 
     // Main Layout Logic
-    const content = <div className={cn("flex flex-col min-h-full", isRanked ? "max-w-3xl mx-auto" : "")}>
+    const content = (<div className={cn("flex flex-col min-h-full", isRanked ? "max-w-3xl mx-auto" : "")}>
         <div className="flex-1 space-y-6">
 
             {/* STRIKE WARNING BANNER */}
