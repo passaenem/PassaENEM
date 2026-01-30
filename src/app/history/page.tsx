@@ -47,7 +47,8 @@ export default function HistoryPage() {
                                 type: (item.exam_title.includes("ENEM") ? "ENEM" : "CONCURSO"),
                                 title: item.exam_title,
                                 score: item.score_percentage,
-                                questions: questionsWithAnswers
+                                questions: questionsWithAnswers,
+                                pdfUrl: item.pdf_url || undefined
                             };
                         });
                         setHistory(supHistory);
@@ -220,6 +221,11 @@ export default function HistoryPage() {
                                             onClick={() => {
                                                 sessionStorage.setItem('currentExam', JSON.stringify(exam.questions));
                                                 sessionStorage.setItem('examMode', 'view');
+                                                if (exam.pdfUrl) {
+                                                    sessionStorage.setItem('currentExamPdf', exam.pdfUrl);
+                                                } else {
+                                                    sessionStorage.removeItem('currentExamPdf');
+                                                }
                                                 window.location.href = '/exam';
                                             }}
                                         >

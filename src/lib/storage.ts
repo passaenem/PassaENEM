@@ -19,6 +19,7 @@ export interface SavedExam {
     title: string;
     score?: number; // Null if not taken yet
     questions: ExamQuestion[];
+    pdfUrl?: string; // Optional PDF link for official exams
 }
 
 const STORAGE_KEY = 'ai_exam_history';

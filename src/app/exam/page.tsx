@@ -323,6 +323,7 @@ export default function ExamPage() {
                 topic: questions[0]?.topic || "General",
                 answers_json: finalAnswers,
                 questions_json: questions,
+                pdf_url: pdfUrl,
             });
 
             if (error) throw error;

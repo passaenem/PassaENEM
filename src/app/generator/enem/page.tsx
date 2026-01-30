@@ -88,15 +88,17 @@ export default function EnemGeneratorPage() {
 
                     // Save to Session and Redirect
                     const newId = Math.random().toString(36).substr(2, 9);
+                    const examTitle = selectedExamMeta ? `ENEM ${selectedExamMeta.year} ${selectedExamMeta.title}` : (selectedExamMeta?.title || "Prova Oficial");
+
                     saveExamToHistory({
                         id: newId,
                         date: new Date().toISOString(),
                         type: 'ENEM',
-                        title: selectedExamMeta?.title || "Prova Oficial",
-                        questions: adaptedQuestions
+                        title: examTitle,
+                        questions: adaptedQuestions,
+                        pdfUrl: selectedExamMeta?.pdf_url
                     });
 
-                    const examTitle = selectedExamMeta?.title || "Prova Oficial";
                     sessionStorage.setItem('currentExam', JSON.stringify(adaptedQuestions));
                     sessionStorage.setItem('currentExamId', newId);
                     sessionStorage.setItem('currentExamDuration', "300"); // 5 hours for full exam
