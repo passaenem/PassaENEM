@@ -597,7 +597,7 @@ export default function ExamPage() {
                 // SPLIT SCREEN LAYOUT
                 <div className="lg:h-screen lg:overflow-hidden flex flex-col lg:flex-row bg-background">
                     {/* LEFT: PDF VIEWER */}
-                    <div className="lg:w-[60%] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-900">
+                    <div className="lg:w-[60%] h-[50vh] lg:h-full border-b lg:border-b-0 lg:border-r border-slate-700 bg-slate-900 shadow-2xl relative">
                         <iframe
                             src={`${pdfUrl}#toolbar=0`}
                             className="w-full h-full"

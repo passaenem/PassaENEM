@@ -96,9 +96,11 @@ export default function EnemGeneratorPage() {
                         questions: adaptedQuestions
                     });
 
+                    const examTitle = selectedExamMeta?.title || "Prova Oficial";
                     sessionStorage.setItem('currentExam', JSON.stringify(adaptedQuestions));
                     sessionStorage.setItem('currentExamId', newId);
                     sessionStorage.setItem('currentExamDuration', "300"); // 5 hours for full exam
+                    sessionStorage.setItem('currentExamTitle', examTitle);
 
                     // Pass PDF URL for Virtual Answer Sheet mode
                     if (selectedExamMeta?.pdf_url) {
@@ -192,17 +194,19 @@ export default function EnemGeneratorPage() {
             const examId = Math.random().toString(36).substr(2, 9); // wait, we generated ID inside saveExamToHistory call above but didn't capture it.
             // We need to use the SAME ID.
             const newId = Math.random().toString(36).substr(2, 9);
+            const generatedTitle = `${formData.area} - ${formData.tema || 'Geral'}`;
 
             saveExamToHistory({
                 id: newId,
                 date: new Date().toISOString(),
                 type: 'ENEM',
-                title: `${formData.area} - ${formData.tema || 'Geral'}`,
+                title: generatedTitle,
                 questions: result.data
             });
 
             sessionStorage.setItem('currentExamId', newId);
             sessionStorage.setItem('currentExamDuration', formData.tempo.toString());
+            sessionStorage.setItem('currentExamTitle', generatedTitle);
             sessionStorage.removeItem('isRanked'); // Disable Lockdown for generated exams
             window.location.href = '/exam';
 

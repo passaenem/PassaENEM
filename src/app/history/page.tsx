@@ -117,7 +117,7 @@ export default function HistoryPage() {
                                     </span>
                                     <span className="text-xs text-slate-500 flex items-center">
                                         <Clock className="w-3 h-3 mr-1" />
-                                        {new Date(exam.date).toLocaleDateString()}
+                                        {new Date(exam.date).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 </div>
                                 <CardTitle className="text-white truncate" title={exam.title}>
@@ -128,6 +128,36 @@ export default function HistoryPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
+                                <div className="mb-4 space-y-2">
+                                    {/* Exam Details */}
+                                    {exam.title.includes("Prova Oficial") || exam.title.match(/^\d{4}/) ? (
+                                        <div className="text-sm text-slate-400">
+                                            <p className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Prova Oficial</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+                                            <div className="bg-slate-950 p-2 rounded border border-slate-800">
+                                                <span className="block text-slate-500 mb-1">Área</span>
+                                                <span className="text-slate-300 font-medium truncate">{exam.questions[0]?.topic || "Geral"}</span>
+                                            </div>
+                                            <div className="bg-slate-950 p-2 rounded border border-slate-800">
+                                                <span className="block text-slate-500 mb-1">Dificuldade</span>
+                                                <span className="text-slate-300 font-medium">{exam.questions[0]?.difficulty || "Médio"}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Score Display if available */}
+                                    {exam.score !== undefined && (
+                                        <div className="mt-2 flex items-center justify-between bg-slate-950/50 p-2 rounded border border-slate-800/50">
+                                            <span className="text-xs text-slate-500">Desempenho</span>
+                                            <span className={`text-sm font-bold ${exam.score >= 70 ? 'text-green-400' : exam.score >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                {exam.score}%
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="flex gap-2">
                                     <Button
                                         className="flex-1 bg-slate-800 hover:bg-slate-700 text-white"
