@@ -71,9 +71,87 @@ export default function CreateChallengePage() {
         }
     }, []);
 
-    // ... (loadData remains same)
+    const loadData = async () => {
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
 
-    // ... (handleChange etc remain same)
+        if (!user || user.id !== ADMIN_ID) {
+            router.push("/dashboard"); // Redirect unauthorized
+            return;
+        }
+
+        // 1. Fetch User Count
+        const { count: uCount, error: uError } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true });
+
+        if (!uError) setUserCount(uCount);
+
+        // 2. Fetch AI Usage Stats (Mock or from app_usage_logs if existed)
+        // Currently just mocking or trying to fetch if table exists. 
+        // User said they would run the script. Let's try to fetch.
+        const { count: aiCount, error: aiError } = await supabase
+            .from('app_usage_logs')
+            .select('*', { count: 'exact', head: true });
+
+        if (!aiError) setAiRequestCount(aiCount);
+        else setAiRequestCount(0); // Default if table missing
+
+        // 3. Daily Active (Unique users in logs today)
+        // This is complex in Supabase simple client. Let's just count logs from today.
+        const todayStr = new Date().toISOString().split('T')[0];
+        const { count: dailyCount } = await supabase
+            .from('app_usage_logs')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', todayStr);
+
+        if (dailyCount !== null) setDailyGenerators(dailyCount);
+
+        // 4. Fetch Active Challenges for Management
+        const { data: challenges } = await supabase
+            .from('challenges')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (challenges) setActiveChallenges(challenges);
+    };
+
+    useEffect(() => {
+        loadData();
+    }, [router]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (name: string, value: string) => {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleDeleteChallenge = async (id: string) => {
+        if (!confirm("Tem certeza que deseja excluir?")) return;
+
+        const { error } = await supabase!.from('challenges').delete().eq('id', id);
+        if (!error) {
+            alert("Desafio excluído!");
+            loadData(); // Refresh list
+        } else {
+            alert("Erro ao excluir: " + error.message);
+        }
+    };
+
+    const handleFinishChallenge = async (id: string) => {
+        if (!confirm("Tem certeza que deseja FINALIZAR este desafio agora? Ele sairá da lista de ativos.")) return;
+
+        const { error } = await supabase!.from('challenges').update({ status: 'finished' }).eq('id', id);
+        if (!error) {
+            alert("Desafio finalizado com sucesso!");
+            loadData(); // Refresh list
+        } else {
+            alert("Erro ao finalizar: " + error.message);
+        }
+    };
 
     const handleEditChallenge = (challenge: any) => {
         // Convert DB timestamp to input datetime-local format (YYYY-MM-DDTHH:mm)
