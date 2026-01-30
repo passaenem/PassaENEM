@@ -82,17 +82,34 @@ export default function AdminOfficialExamsPage() {
             const fileName = `${year}-${sanitizedTitle}-${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
-            // 1. Upload to Storage
+            // 1. Upload to Storage (Exam)
             const { error: uploadError } = await supabase.storage
                 .from('official-exams')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
-            // 2. Get Public URL
-            const { data: { publicUrl } } = supabase.storage
+            // 2. Get Public URL (Exam)
+            const { data: { publicUrl: pdfUrl } } = supabase.storage
                 .from('official-exams')
                 .getPublicUrl(filePath);
+
+            let gabaritoUrl = null;
+            if (gabaritoFile) {
+                const gabaritoExt = gabaritoFile.name.split('.').pop();
+                const gabaritoPath = `gabarito-${year}-${sanitizedTitle}-${Date.now()}.${gabaritoExt}`;
+
+                const { error: gabaritoUploadError } = await supabase.storage
+                    .from('official-exams')
+                    .upload(gabaritoPath, gabaritoFile);
+
+                if (!gabaritoUploadError) {
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('official-exams')
+                        .getPublicUrl(gabaritoPath);
+                    gabaritoUrl = publicUrl;
+                }
+            }
 
             // 3. Save to DB
             const { data: insertedExam, error: dbError } = await supabase
@@ -100,32 +117,26 @@ export default function AdminOfficialExamsPage() {
                 .insert([{
                     title,
                     year: parseInt(year),
-                    pdf_url: publicUrl
+                    pdf_url: pdfUrl
+                    // gabarito_url: gabaritoUrl // Skipping until migration is confirmed
                 }])
                 .select()
                 .single();
 
             if (dbError) throw dbError;
 
-            // 4. Parse with AI
-            // We use the same 'uploading' state but you could add a specific text for this phase
-
-            const parseFormData = new FormData();
-            parseFormData.append("file", file);
-            if (gabaritoFile) {
-                parseFormData.append("gabarito", gabaritoFile);
-            }
-
+            // 4. Parse with AI (Using URLs now to avoid body size limits)
             const parseResponse = await fetch("/api/admin/parse-exam", {
                 method: "POST",
-                body: parseFormData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pdfUrl, gabaritoUrl }),
             });
 
             const parseResult = await parseResponse.json();
 
             if (!parseResult.success) {
                 console.error("AI Parse Error (Exam Saved, Questions Failed):", parseResult.error);
-                alert(`Prova salva, mas erro ao processar questões com IA: ${parseResult.error}. Você pode tentar reprocessar depois (feature futura).`);
+                alert(`Prova salva, mas erro ao processar questões com IA: ${parseResult.error}. O arquivo pode ser muito grande ou houve um timeout.`);
             } else {
                 // 5. Insert Questions
                 const questionsToInsert = parseResult.data.map((q: any) => ({

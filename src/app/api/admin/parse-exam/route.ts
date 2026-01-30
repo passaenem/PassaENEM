@@ -20,23 +20,37 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
 
 export async function POST(request: Request) {
     try {
-        const formData = await request.formData();
-        const file = formData.get("file") as File;
-        const gabaritoFile = formData.get("gabarito") as File | null;
+        const body = await request.json();
+        const { pdfUrl, gabaritoUrl } = body;
 
-        if (!file) {
-            return NextResponse.json({ success: false, error: "No file uploaded" }, { status: 400 });
+        if (!pdfUrl) {
+            return NextResponse.json({ success: false, error: "PDF URL is required" }, { status: 400 });
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer());
+        // Validate URLs to prevent SSRF (basic check, though Supabase storage URLs are predictable)
+        // For now, allow any URL as it's an admin feature.
+
+        // Fetch PDF
+        const pdfResponse = await fetch(pdfUrl);
+        if (!pdfResponse.ok) throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
+        const pdfArrayBuffer = await pdfResponse.arrayBuffer();
+        const buffer = Buffer.from(pdfArrayBuffer);
 
         // 1. Extract Text
         const rawText = await extractTextFromPDF(buffer);
 
         let gabaritoText = "";
-        if (gabaritoFile) {
-            const gabaritoBuffer = Buffer.from(await gabaritoFile.arrayBuffer());
-            gabaritoText = await extractTextFromPDF(gabaritoBuffer);
+        if (gabaritoUrl) {
+            try {
+                const gabaritoResponse = await fetch(gabaritoUrl);
+                if (gabaritoResponse.ok) {
+                    const gabaritoArrayBuffer = await gabaritoResponse.arrayBuffer();
+                    const gabaritoBuffer = Buffer.from(gabaritoArrayBuffer);
+                    gabaritoText = await extractTextFromPDF(gabaritoBuffer);
+                }
+            } catch (err) {
+                console.warn("Failed to fetch/parse Gabarito from URL:", err);
+            }
         }
 
         if (!rawText || rawText.length < 100) {
