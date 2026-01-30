@@ -129,7 +129,7 @@ export function PricingSection({ user }: PricingSectionProps) {
                         <h3 className="text-xl font-bold text-white mb-2">Plano Teste</h3>
                         <p className="text-slate-400 mb-6 font-medium text-sm">Validar Pagamento</p>
                         <div className="flex items-baseline gap-1 mb-6">
-                            <span className="text-3xl font-bold text-white">R$ 1,00</span>
+                            <span className="text-3xl font-bold text-white">R$ 0,10</span>
                             <span className="text-slate-500 text-sm">/único</span>
                         </div>
 
@@ -153,7 +153,7 @@ export function PricingSection({ user }: PricingSectionProps) {
                                 className="w-full text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
                                 onClick={() => handleSubscribe('test')}
                             >
-                                Testar (R$ 1,00)
+                                Testar (R$ 0,10)
                             </Button>
                         </div>
                     </div>
