@@ -25,6 +25,7 @@ export default function CreateChallengePage() {
     const [aiRequestCount, setAiRequestCount] = useState<number | null>(null);
     const [dailyGenerators, setDailyGenerators] = useState<number | null>(null);
     const [activeChallenges, setActiveChallenges] = useState<any[]>([]); // New list for management
+    const [editingId, setEditingId] = useState<string | null>(null); // Track editing state
 
     const [formData, setFormData] = useState({
         title: "",
