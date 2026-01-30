@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ url: result.init_point });
 
         } else if (planType === 'test') {
-            // Test Payment (R$ 0.10)
+            // Test Payment (R$ 1.00)
             const preference = new Preference(client);
             const preferenceBody = {
                 items: [
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
                         id: 'test-plan',
                         title: 'PassaENEM - Teste de Pagamento',
                         quantity: 1,
-                        unit_price: 0.10,
+                        unit_price: 1.00,
                         currency_id: 'BRL',
                     },
                 ],
