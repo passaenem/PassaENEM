@@ -18,6 +18,7 @@ export default function AdminOfficialExamsPage() {
     const [title, setTitle] = useState("");
     const [year, setYear] = useState(new Date().getFullYear().toString());
     const [file, setFile] = useState<File | null>(null);
+    const [gabaritoFile, setGabaritoFile] = useState<File | null>(null);
 
     // Hooks
     // Try to rely on standard alerts if toast is missing, but let's try to be safe
@@ -48,6 +49,12 @@ export default function AdminOfficialExamsPage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
+        }
+    };
+
+    const handleGabaritoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setGabaritoFile(e.target.files[0]);
         }
     };
 
