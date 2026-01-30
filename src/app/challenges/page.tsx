@@ -22,6 +22,11 @@ export default function ChallengesPage() {
     const [unclaimedReward, setUnclaimedReward] = useState<any>(null);
     const [whatsappInput, setWhatsappInput] = useState("");
 
+    // Phone Modal State
+    const [showPhoneModal, setShowPhoneModal] = useState(false);
+    const [pendingChallenge, setPendingChallenge] = useState<Challenge | null>(null);
+    const [userPhone, setUserPhone] = useState("");
+
     // Initial Data Load
     useEffect(() => {
         const loadData = async () => {
@@ -155,11 +160,58 @@ export default function ChallengesPage() {
         return `${hours} horas restantes`;
     };
 
-    // ... (handleDelete same) ...
+    const handleDelete = async (id: string) => {
+        if (!confirm("Tem certeza que deseja excluir este desafio?")) return;
+        if (supabase) {
+            const { error } = await supabase.from('challenges').delete().eq('id', id);
+            if (!error) {
+                setDbChallenges(prev => prev.filter(c => c.id !== id));
+            } else {
+                alert("Erro ao excluir. Verifique se você é administrador.");
+            }
+        }
+    };
 
-    // ... (handleFinishChallenge same) ...
+    const handleFinishChallenge = async (id: string, challengeTitle: string) => {
+        if (!confirm("Tem certeza que deseja FINALIZAR este desafio agora? Ele sairá da lista de ativos e os prêmios serão gerados.")) return;
 
-    // ... (handleStartChallenge logic update)
+        if (supabase) {
+            // 1. Calculate Winners (Top 3)
+            const { data: topResults } = await supabase
+                .from('exam_results')
+                .select('user_id, correct_answers, created_at')
+                .eq('exam_title', `Desafio: ${challengeTitle}`)
+                .order('correct_answers', { ascending: false }) // Score
+                .order('created_at', { ascending: true }) // Time tie-breaker
+                .limit(3);
+
+            // 2. Insert Rewards
+            if (topResults && topResults.length > 0) {
+                const rewardsToInsert = topResults.map((r, index) => ({
+                    user_id: r.user_id,
+                    challenge_id: id,
+                    position: index + 1,
+                    prize_amount: index === 0 ? "R$ 50,00" : index === 1 ? "R$ 30,00" : "R$ 20,00", // Example prizes, ideally from challenge config
+                    status: 'unclaimed',
+                    // user_name will be fetched by admin view via join or we can fetch here. 
+                    // Let's rely on admin view join for latest profile name.
+                }));
+
+                const { error: rewardError } = await supabase.from('rewards').insert(rewardsToInsert);
+                if (rewardError) console.error("Error creating rewards:", rewardError);
+            }
+
+            // 3. Update Challenge Status
+            const { error } = await supabase.from('challenges').update({ status: 'finished' }).eq('id', id);
+
+            if (!error) {
+                alert("Desafio finalizado e prêmios gerados!");
+                setDbChallenges(prev => prev.filter(c => c.id !== id));
+            } else {
+                alert("Erro: " + error.message);
+            }
+        }
+    };
     const handleStartChallenge = async (challenge: Challenge) => {
         // EXPIRATION CHECK
         if (challenge.end_date) {
