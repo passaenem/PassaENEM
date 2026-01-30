@@ -76,6 +76,7 @@ export default function HistoryPage() {
         const examDate = new Date(exam.date);
         const start = startDate ? new Date(startDate) : new Date('2000-01-01');
         const end = endDate ? new Date(endDate) : new Date();
+        end.setDate(end.getDate() + 1); // Add 1 day buffer for server time differences
         end.setHours(23, 59, 59, 999); // End of day
 
         return examDate >= start && examDate <= end;
