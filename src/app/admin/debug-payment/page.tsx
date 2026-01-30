@@ -107,7 +107,71 @@ export default function DebugPaymentPage() {
                         )}
                     </CardContent>
                 </Card>
+                <Card className="bg-slate-900 border-slate-800">
+                    <CardHeader>
+                        <CardTitle>Diagnóstico do Sistema</CardTitle>
+                        <CardDescription>Verifique se as configurações do servidor estão corretas.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <HealthCheck />
+                    </CardContent>
+                </Card>
             </div>
+        </div>
+    );
+}
+
+function HealthCheck() {
+    const [health, setHealth] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+
+    const checkHealth = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/admin/health');
+            const data = await res.json();
+            setHealth(data);
+        } catch (e) {
+            console.error(e);
+        }
+        setLoading(false);
+    };
+
+    return (
+        <div className="space-y-4">
+            <Button onClick={checkHealth} disabled={loading} variant="outline" className="w-full border-slate-700 text-white">
+                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Verificar Configurações (Health Check)"}
+            </Button>
+
+            {health && (
+                <div className="space-y-2 text-sm">
+                    <div className="flex justify-between p-2 bg-slate-950 rounded border border-slate-800">
+                        <span className="text-slate-400">Supabase URL</span>
+                        <span className={health.env.NEXT_PUBLIC_SUPABASE_URL ? "text-green-400 font-bold" : "text-red-500 font-bold"}>
+                            {health.env.NEXT_PUBLIC_SUPABASE_URL ? "OK" : "MISSING"}
+                        </span>
+                    </div>
+                    <div className="flex justify-between p-2 bg-slate-950 rounded border border-slate-800">
+                        <span className="text-slate-400">Service Role Key (CRÍTICO)</span>
+                        <span className={health.env.SUPABASE_SERVICE_ROLE_KEY ? "text-green-400 font-bold" : "text-red-500 font-bold"}>
+                            {health.env.SUPABASE_SERVICE_ROLE_KEY ? "OK" : "MISSING"}
+                        </span>
+                    </div>
+                    <div className="flex justify-between p-2 bg-slate-950 rounded border border-slate-800">
+                        <span className="text-slate-400">Mercado Pago Token</span>
+                        <span className={health.env.MP_ACCESS_TOKEN ? "text-green-400 font-bold" : "text-red-500 font-bold"}>
+                            {health.env.MP_ACCESS_TOKEN ? "OK" : "MISSING"}
+                        </span>
+                    </div>
+                    <div className="flex justify-between p-2 bg-slate-950 rounded border border-slate-800">
+                        <span className="text-slate-400">DB Connection</span>
+                        <span className={health.db.connected ? "text-green-400 font-bold" : "text-red-500 font-bold"}>
+                            {health.db.connected ? "OK" : "ERROR"}
+                        </span>
+                    </div>
+                    {health.db.error && <p className="text-xs text-red-400 mt-1">{health.db.error}</p>}
+                </div>
+            )}
         </div>
     );
 }
