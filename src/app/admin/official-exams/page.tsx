@@ -7,10 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Upload, FileText, Loader2, Download } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast"; // Assuming this exists, or I will remove if not found, but standard in shadcn
-
-// Minimal Toast fallback if not exists
-const useToastFallback = () => ({ toast: (props: any) => alert(props.title + ": " + props.description) });
+// Minimal Toast fallback removed - using alert instead
 
 export default function AdminOfficialExamsPage() {
     const [exams, setExams] = useState<any[]>([]);
