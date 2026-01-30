@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
             if (result.success) {
                 return NextResponse.json({ success: true, message: "Synced successfully" });
             } else {
-                return NextResponse.json({ success: false, error: "Activation failed" }, { status: 500 });
+                return NextResponse.json({ success: false, error: result.error || "Activation failed", details: result.error }, { status: 500 });
             }
         } else {
             return NextResponse.json({ success: false, status: paymentData.status, error: `Status: ${paymentData.status}` }, { status: 400 });
