@@ -98,7 +98,15 @@ export default function EnemGeneratorPage() {
 
                     sessionStorage.setItem('currentExam', JSON.stringify(adaptedQuestions));
                     sessionStorage.setItem('currentExamId', newId);
-                    sessionStorage.setItem('currentExamDuration', "90"); // Default 90 min for official part
+                    sessionStorage.setItem('currentExamDuration', "300"); // 5 hours for full exam
+
+                    // Pass PDF URL for Virtual Answer Sheet mode
+                    if (selectedExamMeta?.pdf_url) {
+                        sessionStorage.setItem('currentExamPdf', selectedExamMeta.pdf_url);
+                    } else {
+                        sessionStorage.removeItem('currentExamPdf');
+                    }
+
                     sessionStorage.removeItem('isRanked');
                     window.location.href = '/exam';
                     return;
