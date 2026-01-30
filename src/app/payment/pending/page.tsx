@@ -39,7 +39,7 @@ function PaymentPendingContent() {
                 setStatus('Pagamento confirmado! 🚀');
                 setTimeout(() => router.push('/dashboard'), 1500);
             } else {
-                setStatus('Pagamento ainda em processamento pelo banco.');
+                setStatus(`Pagamento ainda não aprovado. Status: ${data.status || 'Desconhecido'}`);
             }
         } catch (error) {
             console.error(error);
