@@ -110,6 +110,7 @@ export default function ConcursoGeneratorPage() {
             sessionStorage.setItem('currentExamId', newId);
             sessionStorage.setItem('currentExamDuration', formData.tempo.toString());
             sessionStorage.removeItem('isRanked'); // Disable Lockdown for generated exams
+            sessionStorage.removeItem('currentExamPdf'); // Ensure no PDF is shown for AI exams
             window.location.href = '/exam';
 
         } catch (error: any) {

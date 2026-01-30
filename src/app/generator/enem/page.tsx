@@ -207,7 +207,9 @@ export default function EnemGeneratorPage() {
             sessionStorage.setItem('currentExamId', newId);
             sessionStorage.setItem('currentExamDuration', formData.tempo.toString());
             sessionStorage.setItem('currentExamTitle', generatedTitle);
+            sessionStorage.setItem('currentExamTitle', generatedTitle);
             sessionStorage.removeItem('isRanked'); // Disable Lockdown for generated exams
+            sessionStorage.removeItem('currentExamPdf'); // Ensure no PDF is shown for AI exams
             window.location.href = '/exam';
 
         } catch (error: any) {
