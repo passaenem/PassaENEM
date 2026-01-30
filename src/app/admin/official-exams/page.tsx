@@ -70,7 +70,15 @@ export default function AdminOfficialExamsPage() {
             if (!supabase) throw new Error("Supabase not initialized");
 
             const fileExt = file.name.split('.').pop();
-            const fileName = `${year}-${title.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.${fileExt}`;
+            // Sanitize title: remove accents, special chars, keep only alphanumeric and hyphens
+            const sanitizedTitle = title
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "") // Remove accents
+                .replace(/[^a-zA-Z0-9\s-]/g, "") // Keep only alphanumeric, spaces, hyphens
+                .replace(/\s+/g, '-') // Replace spaces with hyphens
+                .toLowerCase();
+
+            const fileName = `${year}-${sanitizedTitle}-${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             // 1. Upload to Storage
