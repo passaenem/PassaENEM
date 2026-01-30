@@ -95,17 +95,60 @@ export default function AdminOfficialExamsPage() {
                 .getPublicUrl(filePath);
 
             // 3. Save to DB
-            const { error: dbError } = await supabase
+            const { data: insertedExam, error: dbError } = await supabase
                 .from('official_exams')
                 .insert([{
                     title,
                     year: parseInt(year),
                     pdf_url: publicUrl
-                }]);
+                }])
+                .select()
+                .single();
 
             if (dbError) throw dbError;
 
-            alert("Prova enviada com sucesso!");
+            // 4. Parse with AI
+            // We use the same 'uploading' state but you could add a specific text for this phase
+
+            const parseFormData = new FormData();
+            parseFormData.append("file", file);
+            if (gabaritoFile) {
+                parseFormData.append("gabarito", gabaritoFile);
+            }
+
+            const parseResponse = await fetch("/api/admin/parse-exam", {
+                method: "POST",
+                body: parseFormData,
+            });
+
+            const parseResult = await parseResponse.json();
+
+            if (!parseResult.success) {
+                console.error("AI Parse Error (Exam Saved, Questions Failed):", parseResult.error);
+                alert(`Prova salva, mas erro ao processar questões com IA: ${parseResult.error}. Você pode tentar reprocessar depois (feature futura).`);
+            } else {
+                // 5. Insert Questions
+                const questionsToInsert = parseResult.data.map((q: any) => ({
+                    exam_id: insertedExam.id,
+                    question_number: q.question_number,
+                    statement: q.statement,
+                    alternatives: q.alternatives,
+                    correct_answer: q.correct_answer,
+                    area: q.area,
+                    image_url: null
+                }));
+
+                const { error: questionsError } = await supabase
+                    .from('official_questions')
+                    .insert(questionsToInsert);
+
+                if (questionsError) {
+                    console.error("Database Insert Error:", questionsError);
+                    alert("Prova salva, mas erro ao salvar questões no banco de dados.");
+                } else {
+                    alert(`Prova enviada e ${questionsToInsert.length} questões processadas com sucesso!`);
+                }
+            }
 
             // Clear Form
             setTitle("");
