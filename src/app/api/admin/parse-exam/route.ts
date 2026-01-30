@@ -37,42 +37,22 @@ export async function POST(request: Request) {
         const pdfArrayBuffer = await pdfResponse.arrayBuffer();
         const buffer = Buffer.from(pdfArrayBuffer);
 
-        // 1. Extract Text
-        const rawText = await extractTextFromPDF(buffer);
+        // 1. Prepare Parts for Gemini
+        const parts: any[] = [];
 
-        let gabaritoText = "";
-        if (gabaritoUrl) {
-            try {
-                const gabaritoResponse = await fetch(gabaritoUrl);
-                if (gabaritoResponse.ok) {
-                    const gabaritoArrayBuffer = await gabaritoResponse.arrayBuffer();
-                    const gabaritoBuffer = Buffer.from(gabaritoArrayBuffer);
-                    gabaritoText = await extractTextFromPDF(gabaritoBuffer);
-                }
-            } catch (err) {
-                console.warn("Failed to fetch/parse Gabarito from URL:", err);
-            }
-        }
-
-        if (!rawText || rawText.length < 100) {
-            return NextResponse.json({ success: false, error: "Could not extract sufficient text from PDF." }, { status: 400 });
-        }
-
-        // 2. Process with Gemini
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Using 1.5 Flash for speed/cost
-
-        const prompt = `
+        // Prompt
+        const promptText = `
             Você é um especialista em estruturar provas do ENEM.
             
             Tarefa:
-            1. Analise o TEXTO DA PROVA abaixo e extraia as questões.
-            2. Se houver um TEXTO DO GABARITO, tente encontrar a resposta correta para cada questão e preencha o campo 'correct_answer' (A, B, C, D, E).
+            1. Analise o arquivo PDF fornecido da PROVA e extraia as questões.
+            2. Se houver um arquivo PDF de GABARITO, cruze as informações para identificar a resposta correta.
             
             Regras de Extração:
             - Corrija quebras de linha indevidas no enunciado.
-            - Ignore textos de cabeçalho/rodapé repetitivos (ex: "ENEM 2023 - PROVA AMARELA").
-            - Se houver imagens na questão, o campo image_url deve ser null (será preenchido manualmente). Indicadores de imagem no texto como "(Figura 1)" devem ser mantidos no enunciado.
-            - 'correct_answer' deve ser a letra da alternativa correta. Se não achar no gabarito, null.
+            - Ignore textos de cabeçalho/rodapé repetitivos (ex: "ENEM 2023").
+            - 'correct_answer' deve ser a letra da alternativa correta (A, B, C, D, E). Se não tiver gabarito, null.
+            - 'area': Classifique em Linguagens, Humanas, Natureza, Matemática.
             
             Retorne APENAS um JSON válido seguindo este esquema estrito:
             {
@@ -81,20 +61,49 @@ export async function POST(request: Request) {
                         "question_number": 1,
                         "statement": "Texto completo do enunciado...",
                         "alternatives": ["Texto da alternativa A", "Texto da alternativa B", ...],
-                        "correct_answer": "A", // Preenchido pelo gabarito ou null
-                        "area": "Linguagens" // Estime baseado no conteúdo: Linguagens, Humanas, Natureza, Matemática
+                        "correct_answer": "A", 
+                        "area": "Linguagens"
                     }
                 ]
             }
-
-            TEXTO DO GABARITO:
-            ${gabaritoText.slice(0, 5000)}
-
-            TEXTO DA PROVA:
-            ${rawText.slice(0, 30000)} // Limit context if too large, but Flash handles ~1M tokens so usually fine.
         `;
+        parts.push({ text: promptText });
 
-        const result = await model.generateContent(prompt);
+        // PDF Part
+        parts.push({
+            inlineData: {
+                data: buffer.toString("base64"),
+                mimeType: "application/pdf",
+            },
+        });
+
+        // Gabarito Part (if exists)
+        if (gabaritoUrl) {
+            try {
+                const gabaritoResponse = await fetch(gabaritoUrl);
+                if (gabaritoResponse.ok) {
+                    const gabaritoArrayBuffer = await gabaritoResponse.arrayBuffer();
+                    const gabaritoBuffer = Buffer.from(gabaritoArrayBuffer);
+                    parts.push({
+                        text: "Este é o arquivo do GABARITO. Use-o para encontrar as respostas corretas:",
+                    });
+                    parts.push({
+                        inlineData: {
+                            data: gabaritoBuffer.toString("base64"),
+                            mimeType: "application/pdf",
+                        },
+                    });
+                }
+            } catch (err) {
+                console.warn("Failed to fetch/include Gabarito:", err);
+            }
+        }
+
+        // 2. Process with Gemini
+        // Increase safety settings? Flash is usually fine.
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const result = await model.generateContent(parts);
         const response = await result.response;
         const text = response.text();
 
@@ -106,6 +115,6 @@ export async function POST(request: Request) {
 
     } catch (error: any) {
         console.error("Parse API Error:", error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message || String(error) }, { status: 500 });
     }
 }
