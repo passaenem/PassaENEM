@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
 
         if (topic === "payment") {
             const payment = new Payment(client);
-            // ... (keep existing logic)
+            const paymentData = await payment.get({ id: id });
+
+            console.log("Payment status:", paymentData.status);
             if (paymentData.status === 'approved' || paymentData.status === 'authorized') {
                 const userId = paymentData.external_reference;
                 const amount = paymentData.transaction_amount;
