@@ -12,9 +12,10 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
         const pdf = (pdfModule as any).default || pdfModule;
         const data = await pdf(buffer);
         return data.text;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error extracting text from PDF:", error);
-        throw new Error("Failed to parse PDF text.");
+        console.error("Buffer Size:", buffer?.length);
+        throw new Error(`Failed to parse PDF text: ${error.message || error}`);
     }
 }
 
