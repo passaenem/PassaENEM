@@ -7,6 +7,7 @@ export interface Challenge {
     questionsCount: number;
     participants: number;
     timeLeft: string; // e.g. "2d 10h"
+    end_date?: string; // Add this
     status: "active" | "finished";
     prize: string; // e.g. "R$ 100,00"
     top3: { name: string; score: number; time: string }[]; // Mock leaderboard
