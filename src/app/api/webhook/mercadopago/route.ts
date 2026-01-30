@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MercadoPagoConfig, Payment, PreApproval } from "mercadopago";
+import { MercadoPagoConfig, Payment } from "mercadopago";
 import { createClient } from "@supabase/supabase-js";
+import { handleProActivation } from "@/lib/payments";
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || '' });
 
@@ -10,49 +11,61 @@ export async function POST(req: NextRequest) {
         const topic = url.searchParams.get("topic") || url.searchParams.get("type");
         const id = url.searchParams.get("id") || url.searchParams.get("data.id");
 
-        console.log(`Webhook received: Topic=${topic}, ID=${id}`);
-        console.log("Full URL:", req.url);
-        // Note: Reading body might consume the stream if we need it later, but here we only use params.
-        // If we needed body, we would clone() it.
+        console.log(`[Webhook] 🔔 Notification Received! Topic: ${topic}, ID: ${id}`);
+        console.log(`[Webhook] URL: ${req.url}`);
 
         if (!id) {
+            console.log("[Webhook] ⚠️ No ID provided, ignoring.");
             return NextResponse.json({ status: "ignored", message: "No ID provided" });
         }
 
-        // Ensure to import the function at the top
-        // import { handleProActivation } from "@/lib/payments";
-
         if (topic === "payment") {
+            console.log(`[Webhook] 🔍 Fetching payment ${id} from Mercado Pago...`);
             const payment = new Payment(client);
             const paymentData = await payment.get({ id: id });
 
-            console.log("Payment status:", paymentData.status);
+            console.log(`[Webhook] 🧾 Payment Status: ${paymentData.status}`);
+            console.log(`[Webhook] 👤 External Reference (User ID): ${paymentData.external_reference}`);
+            console.log(`[Webhook] 💰 Amount: ${paymentData.transaction_amount}`);
+            console.log(`[Webhook] 🏷️ Metadata:`, paymentData.metadata);
+
             if (paymentData.status === 'approved' || paymentData.status === 'authorized') {
                 const userId = paymentData.external_reference;
                 const amount = paymentData.transaction_amount;
+                const type = paymentData.metadata?.plan_type || 'unknown';
 
                 if (userId) {
-                    // Start Import Fix
-                    const { handleProActivation } = await import("@/lib/payments");
-                    await handleProActivation(userId, amount, 'one_time', id);
+                    console.log(`[Webhook] ✅ Payment Valid. Triggering activation for user ${userId}...`);
+
+                    try {
+                        const result = await handleProActivation(userId, amount, type, id);
+                        if (result.success) {
+                            console.log(`[Webhook] 🚀 Activation Successful for user ${userId}`);
+                        } else {
+                            console.error(`[Webhook] ❌ Activation function returned error:`, result.error);
+                        }
+                    } catch (activationError) {
+                        console.error(`[Webhook] ❌ Critical Error during activation:`, activationError);
+                    }
+
                 } else {
-                    console.warn(`Payment ${id} approved but no external_reference (userId) found.`);
+                    console.warn(`[Webhook] ⚠️ Payment approved but NO External Reference found. Cannot link to user.`);
                 }
+            } else {
+                console.log(`[Webhook] ℹ️ Payment not approved yet (Status: ${paymentData.status}). Waiting...`);
             }
         }
-        // ...
-        // DELETE the local handleProActivation function definition at the bottom of the file
-
-        else if (topic === "subscription_preapproval") {
-            // We can handle subscription status changes here if needed
+        else if (topic === "merchant_order") {
+            console.log(`[Webhook] ℹ️ Merchant Order update (Ignored for now).`);
+        }
+        else {
+            console.log(`[Webhook] ℹ️ Unhandled topic: ${topic}`);
         }
 
         return NextResponse.json({ status: "success" });
 
     } catch (error: any) {
-        console.error("Webhook Error:", error);
+        console.error("[Webhook] 🔥 CRITICAL ERROR:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
-
-// End of file
