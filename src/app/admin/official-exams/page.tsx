@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, Upload, FileText, Loader2, Download } from "lucide-react";
+import { Trash2, Upload, FileText, Loader2, Download, Pencil, Check, X } from "lucide-react";
 // Minimal Toast fallback removed - using alert instead
 
 export default function AdminOfficialExamsPage() {
@@ -21,10 +21,9 @@ export default function AdminOfficialExamsPage() {
     const [gabaritoFile, setGabaritoFile] = useState<File | null>(null);
     const [resetKey, setResetKey] = useState(0); // Key to force reset file inputs
 
-    // Hooks
-    // Try to rely on standard alerts if toast is missing, but let's try to be safe
-    // actually, I'll just use native alert for simplicity effectively or check if I can mock it.
-    // For now, I'll assume simple error handling.
+    // Edit State
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState("");
 
     useEffect(() => {
         fetchExams();
@@ -215,6 +214,44 @@ export default function AdminOfficialExamsPage() {
         }
     };
 
+    // Edit Handlers
+    const startEditing = (exam: any) => {
+        setEditingId(exam.id);
+        setEditTitle(exam.title);
+    };
+
+    const cancelEditing = () => {
+        setEditingId(null);
+        setEditTitle("");
+    };
+
+    const saveEditing = async (id: string) => {
+        if (!editTitle.trim()) {
+            alert("O título não pode estar vazio.");
+            return;
+        }
+
+        try {
+            if (!supabase) return;
+
+            const { error } = await supabase
+                .from('official_exams')
+                .update({ title: editTitle })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            // Update local state
+            setExams(exams.map(e => e.id === id ? { ...e, title: editTitle } : e));
+            setEditingId(null);
+            setEditTitle("");
+
+        } catch (error: any) {
+            console.error(error);
+            alert("Erro ao atualizar título: " + error.message);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-950 p-6 space-y-8 text-slate-100">
             <div className="flex justify-between items-center">
@@ -307,12 +344,39 @@ export default function AdminOfficialExamsPage() {
                             <div className="space-y-3">
                                 {exams.map((exam) => (
                                     <div key={exam.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 font-bold border border-slate-800">
+                                        <div className="flex items-center gap-3 flex-1 min-w-0 mr-4">
+                                            <div className="h-10 w-10 shrink-0 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 font-bold border border-slate-800">
                                                 {exam.year}
                                             </div>
-                                            <div>
-                                                <h3 className="font-medium text-slate-200">{exam.title}</h3>
+                                            <div className="flex-1 min-w-0">
+                                                {editingId === exam.id ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <Input
+                                                            value={editTitle}
+                                                            onChange={(e) => setEditTitle(e.target.value)}
+                                                            className="h-8 bg-slate-900 border-slate-600 text-sm"
+                                                            autoFocus
+                                                        />
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-green-400 hover:text-green-300 hover:bg-green-900/20" onClick={() => saveEditing(exam.id)}>
+                                                            <Check className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-slate-300" onClick={cancelEditing}>
+                                                            <X className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 group">
+                                                        <h3 className="font-medium text-slate-200 truncate" title={exam.title}>{exam.title}</h3>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-6 w-6 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity hover:text-violet-400"
+                                                            onClick={() => startEditing(exam)}
+                                                        >
+                                                            <Pencil className="w-3 h-3" />
+                                                        </Button>
+                                                    </div>
+                                                )}
                                                 <div className="text-xs text-slate-500">Adicionado em {new Date(exam.created_at).toLocaleDateString()}</div>
                                             </div>
                                         </div>
