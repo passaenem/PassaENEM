@@ -47,22 +47,87 @@ export async function POST(request: Request) {
         }
 
         // 1. Construct the Prompt
-        let finalPrompt = PROMPTS.SYSTEM_BASE
-            .replace('{tipo_prova}', type)
-            .replace('{tipo_prova}', type)
-            .replace('{area}', params.area || "Geral")
-            .replace('{area}', params.area || "Geral")
-            .replace('{tema}', params.tema || params.disciplina || "Geral")
-            .replace('{tema}', params.tema || params.disciplina || "Geral")
-            .replace('{nivel}', params.nivel || "Médio")
-            .replace('{nivel}', params.nivel || "Médio")
-            .replace('{quantidade}', quantity.toString())
-            .replace('{quantidade}', quantity.toString())
-            .replace('{tempo}', params.tempo || 15)
-            .replace('{tempo}', params.tempo || 15);
+        let finalPrompt = "";
 
         if (type === 'CONCURSO') {
-            finalPrompt += `\n\nContexto Adicional: Banca ${params.banca || "Genérica"}.`;
+            finalPrompt = `
+Você é uma IA especializada na criação de questões para concursos públicos brasileiros.
+As questões devem seguir o estilo de bancas organizadoras reais e respeitar o nível do cargo.
+
+Parâmetros recebidos:
+- Área do Concurso: ${params.area || "Geral"}
+- Subárea / Cargo: ${params.cargo || "Não especificado"}
+- Banca: ${params.banca || "Genérica / Estilo Geral"}
+- Disciplina: ${params.disciplina || "Conhecimentos Gerais"}
+- Nível de dificuldade: ${params.nivel || "Médio"}
+- Quantidade de questões: ${quantity}
+
+Regras obrigatórias:
+1. Se houver Subárea / Cargo, as questões DEVEM ser específicas para esse cargo.
+2. Caso a Área possua múltiplas subáreas (ex: Saúde, Policial, Tecnologia), NÃO gere conteúdo genérico.
+3. Respeite o estilo da banca informada:
+   - FCC: enunciados longos, alternativas técnicas
+   - FGV: contextualização, interpretação e casos práticos
+   - VUNESP: objetividade e literalidade
+   - CESPE/Cebraspe: assertivas certo/errado ou alto rigor conceitual (Sempre adapte para Múltipla Escolha ABCDE neste sistema)
+   - IBFC / AOCP: abordagem direta e cobrança normativa
+
+Siga OBRIGATORIAMENTE o passo a passo abaixo antes de gerar qualquer conteúdo.
+
+========================
+PASSO 1 — PLANEJAMENTO DA PROVA
+========================
+Antes de escrever as questões, planeje mentalmente:
+- Distribuição equilibrada de dificuldade
+- Linguagem adequada ao nível informado
+- Apenas UMA alternativa correta por questão
+- Conteúdo coerente com a área e o tema
+
+========================
+PASSO 2 — FORMATO DE SAÍDA (OBRIGATÓRIO)
+========================
+Retorne APENAS um JSON válido, sem textos fora dele, seguindo exatamente este modelo:
+
+{
+  "tipo_prova": "CONCURSO",
+  "area": "${params.area}",
+  "tema": "${params.disciplina}",
+  "tempo_total_minutos": ${params.tempo || 15},
+  "pontuacao_total": ${quantity},
+  "questoes": [
+    {
+      "id": 1,
+      "enunciado": "Texto completo da questão",
+      "alternativas": {
+        "A": "Texto alternativa A",
+        "B": "Texto alternativa B",
+        "C": "Texto alternativa C",
+        "D": "Texto alternativa D",
+        "E": "Texto alternativa E"
+      },
+      "alternativa_correta": "A",
+      "explicacao": "Explicação clara e objetiva",
+      "dificuldade": "${params.nivel}",
+      "pontuacao": 175
+    }
+  ]
+}
+
+REGRAS FINAIS (CRÍTICAS):
+- NÃO escreva nada fora do JSON
+- NÃO use markdown
+- NÃO explique o que está fazendo
+- NÃO invente dados incorretos
+`;
+        } else {
+            // Default (ENEM or General)
+            finalPrompt = PROMPTS.SYSTEM_BASE
+                .replace('{tipo_prova}', type)
+                .replace('{area}', params.area || "Geral")
+                .replace('{tema}', params.tema || params.disciplina || "Geral")
+                .replace('{nivel}', params.nivel || "Médio")
+                .replace('{quantidade}', quantity.toString())
+                .replace('{tempo}', params.tempo || 15);
         }
 
         // 2. Call Google Gemini API (Direct)

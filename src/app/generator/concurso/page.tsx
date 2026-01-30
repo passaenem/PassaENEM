@@ -15,8 +15,9 @@ import { CreditWarning } from "@/components/CreditWarning";
 export default function ConcursoGeneratorPage() {
     const [formData, setFormData] = useState({
         area: "Administrativa",
+        cargo: "",
         disciplina: "",
-        banca: "Genérica",
+        banca: "",
         nivel: "Médio",
         quantidade: 5,
         tempo: 15,
@@ -145,6 +146,17 @@ export default function ConcursoGeneratorPage() {
                             </Alert>
                         )}
 
+                        <div className="space-y-2">
+                            <Label htmlFor="cargo">Cargo / Subárea (Opcional)</Label>
+                            <Input
+                                id="cargo"
+                                name="cargo"
+                                placeholder="Ex: Analista Judiciário, Soldado, Auditor..."
+                                value={formData.cargo}
+                                onChange={handleChange}
+                            />
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="area">Área do Concurso</Label>
@@ -160,25 +172,31 @@ export default function ConcursoGeneratorPage() {
                                     <option value="Fiscal">Fiscal</option>
                                     <option value="Educação">Educação</option>
                                     <option value="Saúde">Saúde</option>
+                                    <option value="Jurídica">Jurídica</option>
                                     <option value="Tecnologia">Tecnologia</option>
                                 </select>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="banca">Banca</Label>
-                                <select
+                                <Label htmlFor="banca">Banca Organizadora</Label>
+                                <Input
                                     id="banca"
                                     name="banca"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    list="banca-suggestions"
+                                    placeholder="Digite ou selecione a banca..."
                                     value={formData.banca}
                                     onChange={handleChange}
-                                >
-                                    <option value="Genérica">Genérica / Estilo Geral</option>
-                                    <option value="FCC">FCC</option>
-                                    <option value="FGV">FGV</option>
-                                    <option value="VUNESP">VUNESP</option>
-                                    <option value="CESPE">CESPE (Cebraspe)</option>
-                                </select>
+                                />
+                                <datalist id="banca-suggestions">
+                                    <option value="Cebraspe (CESPE)" />
+                                    <option value="FGV" />
+                                    <option value="FCC" />
+                                    <option value="VUNESP" />
+                                    <option value="Cesgranrio" />
+                                    <option value="IBFC" />
+                                    <option value="AOCP" />
+                                    <option value="IDECAN" />
+                                </datalist>
                             </div>
                         </div>
 
