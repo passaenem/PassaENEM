@@ -67,12 +67,13 @@ async function handleProActivation(userId: string, amount: number | undefined, t
 
     const { error: updateError } = await supabaseAdmin
         .from('profiles')
-        .update({
+        .upsert({
+            id: userId, // Ensure we target or create the correct user
             plan_type: 'pro',
-            credits: 350, // Updated to match LP promise
+            credits: 350,
             plan_end_date: endDate.toISOString(),
+            updated_at: new Date().toISOString()
         })
-        .eq('id', userId);
 
     if (updateError) {
         console.error("Profile update error:", updateError);

@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
                     },
                     back_urls: backUrls,
                     auto_return: 'approved',
+                    notification_url: `${appUrl}/api/webhook/mercadopago`,
                     external_reference: userId, // PASS USER ID HERE
                     metadata: {
                         plan_type: 'monthly',
@@ -97,6 +98,7 @@ export async function POST(req: NextRequest) {
                     },
                     back_urls: backUrls,
                     auto_return: 'approved',
+                    notification_url: `${appUrl}/api/webhook/mercadopago`,
                     external_reference: userId,
                     metadata: {
                         plan_type: 'test',
