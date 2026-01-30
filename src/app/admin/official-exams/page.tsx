@@ -19,6 +19,7 @@ export default function AdminOfficialExamsPage() {
     const [year, setYear] = useState(new Date().getFullYear().toString());
     const [file, setFile] = useState<File | null>(null);
     const [gabaritoFile, setGabaritoFile] = useState<File | null>(null);
+    const [resetKey, setResetKey] = useState(0); // Key to force reset file inputs
 
     // Hooks
     // Try to rely on standard alerts if toast is missing, but let's try to be safe
@@ -105,8 +106,13 @@ export default function AdminOfficialExamsPage() {
             if (dbError) throw dbError;
 
             alert("Prova enviada com sucesso!");
+
+            // Clear Form
             setTitle("");
             setFile(null);
+            setGabaritoFile(null);
+            setResetKey(prev => prev + 1); // Force input clear
+
             fetchExams();
 
         } catch (error: any) {
@@ -191,6 +197,7 @@ export default function AdminOfficialExamsPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="file">Arquivo da Prova (PDF)</Label>
                                 <Input
+                                    key={`file-${resetKey}`}
                                     id="file"
                                     type="file"
                                     accept="application/pdf"
@@ -201,6 +208,7 @@ export default function AdminOfficialExamsPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="gabarito">Arquivo do Gabarito (Opcional)</Label>
                                 <Input
+                                    key={`gabarito-${resetKey}`}
                                     id="gabarito"
                                     type="file"
                                     accept="application/pdf"
