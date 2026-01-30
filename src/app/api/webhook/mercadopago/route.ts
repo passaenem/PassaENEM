@@ -16,23 +16,28 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ status: "ignored", message: "No ID provided" });
         }
 
+        // Ensure to import the function at the top
+        // import { handleProActivation } from "@/lib/payments";
+
         if (topic === "payment") {
             const payment = new Payment(client);
-            const paymentData = await payment.get({ id: id });
-
-            console.log("Payment status:", paymentData.status);
-
+            // ... (keep existing logic)
             if (paymentData.status === 'approved' || paymentData.status === 'authorized') {
                 const userId = paymentData.external_reference;
                 const amount = paymentData.transaction_amount;
 
                 if (userId) {
+                    // Start Import Fix
+                    const { handleProActivation } = await import("@/lib/payments");
                     await handleProActivation(userId, amount, 'one_time', id);
                 } else {
                     console.warn(`Payment ${id} approved but no external_reference (userId) found.`);
                 }
             }
         }
+        // ...
+        // DELETE the local handleProActivation function definition at the bottom of the file
+
         else if (topic === "subscription_preapproval") {
             // We can handle subscription status changes here if needed
         }
@@ -45,50 +50,4 @@ export async function POST(req: NextRequest) {
     }
 }
 
-async function handleProActivation(userId: string, amount: number | undefined, type: string, paymentId: string) {
-    // Initialize Supabase Admin client to bypass RLS for updates
-    const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // 1. Activate PRO
-    const endDate = new Date();
-
-    // Check if it's the Test Plan (R$ 1.00) => 1 Day Duration
-    // Otherwise (R$ 35.00 or R$ 49.90) => 30 Days Duration
-    // For Testing purposes, we will treat R$ 1.00 as a full month activation as well
-    // This avoids the "expired immediately" confusion during validation.
-    // if (amount === 1.00) {
-    //    endDate.setDate(endDate.getDate() + 1); // 1 Day for Test
-    // } else {
-    endDate.setDate(endDate.getDate() + 30); // 30 Days for Monthly/Recurring
-    // }
-
-    const { error: updateError } = await supabaseAdmin
-        .from('profiles')
-        .upsert({
-            id: userId, // Ensure we target or create the correct user
-            plan_type: 'pro',
-            credits: 350,
-            plan_end_date: endDate.toISOString(),
-            updated_at: new Date().toISOString()
-        })
-
-    if (updateError) {
-        console.error("Profile update error:", updateError);
-        return;
-    }
-
-    // 2. Log Payment
-    const { error: logError } = await supabaseAdmin.from('payments').insert({
-        user_id: userId,
-        amount: amount,
-        status: 'approved',
-        type: type,
-        external_id: paymentId
-    });
-
-    if (logError) console.error("Payment log error:", logError);
-    else console.log(`User ${userId} upgraded to PRO via payment ${paymentId}.`);
-}
+// End of file
