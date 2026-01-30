@@ -125,39 +125,48 @@ export default function AdminOfficialExamsPage() {
 
             if (dbError) throw dbError;
 
-            // 4. Parse with AI (Using URLs now to avoid body size limits)
-            const parseResponse = await fetch("/api/admin/parse-exam", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pdfUrl, gabaritoUrl }),
-            });
+            // 4. Parse with AI (Only Gabarito is strictly needed for answers, but we send both just in case we expand later)
+            // But currently API only uses Gabarito for answers extraction
 
-            const parseResult = await parseResponse.json();
-
-            if (!parseResult.success) {
-                console.error("AI Parse Error (Exam Saved, Questions Failed):", parseResult.error);
-                alert(`Prova salva, mas erro ao processar questões com IA: ${parseResult.error}. O arquivo pode ser muito grande ou houve um timeout.`);
+            if (!gabaritoUrl) {
+                alert("Prova salva! Sem gabarito, não geramos o cartão resposta automático. Você pode fazer isso manualmente depois.");
+                // We stop here if no gabarito, questions won't be inserted automatically
             } else {
-                // 5. Insert Questions
-                const questionsToInsert = parseResult.data.map((q: any) => ({
-                    exam_id: insertedExam.id,
-                    question_number: q.question_number,
-                    statement: q.statement,
-                    alternatives: q.alternatives,
-                    correct_answer: q.correct_answer,
-                    area: q.area,
-                    image_url: null
-                }));
+                const parseResponse = await fetch("/api/admin/parse-exam", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pdfUrl, gabaritoUrl }),
+                });
 
-                const { error: questionsError } = await supabase
-                    .from('official_questions')
-                    .insert(questionsToInsert);
+                const parseResult = await parseResponse.json();
 
-                if (questionsError) {
-                    console.error("Database Insert Error:", questionsError);
-                    alert("Prova salva, mas erro ao salvar questões no banco de dados.");
+                if (!parseResult.success) {
+                    console.error("AI Parse Error:", parseResult.error);
+                    alert(`Prova salva, mas erro ao ler GABARITO: ${parseResult.error}. Certifique-se que o modelo de IA está disponível.`);
                 } else {
-                    alert(`Prova enviada e ${questionsToInsert.length} questões processadas com sucesso!`);
+                    // 5. Insert Questions (Virtual Answer Sheet Mode)
+                    // parseResult.data is [{ "q": 1, "a": "A" }, ...]
+
+                    const questionsToInsert = parseResult.data.map((item: any) => ({
+                        exam_id: insertedExam.id,
+                        question_number: item.q,
+                        statement: `Questão ${item.q} - Consulte o Caderno de Questões (PDF).`,
+                        alternatives: ["A", "B", "C", "D", "E"], // Placeholder options
+                        correct_answer: item.a,
+                        area: "Geral", // Can't know area without analyzing text
+                        image_url: null
+                    }));
+
+                    const { error: questionsError } = await supabase
+                        .from('official_questions')
+                        .insert(questionsToInsert);
+
+                    if (questionsError) {
+                        console.error("Database Insert Error:", questionsError);
+                        alert("Prova salva, mas erro ao salvar gabarito no banco.");
+                    } else {
+                        alert(`Prova enviada! Gabarito de ${questionsToInsert.length} questões processado com sucesso.`);
+                    }
                 }
             }
 

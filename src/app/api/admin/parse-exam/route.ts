@@ -36,71 +36,53 @@ export async function POST(request: Request) {
         if (!pdfResponse.ok) throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
         const pdfArrayBuffer = await pdfResponse.arrayBuffer();
         const buffer = Buffer.from(pdfArrayBuffer);
-
         // 1. Prepare Parts for Gemini
         const parts: any[] = [];
 
         // Prompt
         const promptText = `
-            Você é um especialista em estruturar provas do ENEM.
+            Tarefa: Extrair o GABARITO desta prova.
             
-            Tarefa:
-            1. Analise o arquivo PDF fornecido da PROVA e extraia as questões.
-            2. Se houver um arquivo PDF de GABARITO, cruze as informações para identificar a resposta correta.
+            Analise o documento (Gabarito Oficial) e retorne um JSON com o número da questão e a resposta correta.
             
-            Regras de Extração:
-            - Corrija quebras de linha indevidas no enunciado.
-            - Ignore textos de cabeçalho/rodapé repetitivos (ex: "ENEM 2023").
-            - 'correct_answer' deve ser a letra da alternativa correta (A, B, C, D, E). Se não tiver gabarito, null.
-            - 'area': Classifique em Linguagens, Humanas, Natureza, Matemática.
-            
-            Retorne APENAS um JSON válido seguindo este esquema estrito:
+            Retorne APENAS um JSON válido:
             {
-                "questions": [
-                    {
-                        "question_number": 1,
-                        "statement": "Texto completo do enunciado...",
-                        "alternatives": ["Texto da alternativa A", "Texto da alternativa B", ...],
-                        "correct_answer": "A", 
-                        "area": "Linguagens"
-                    }
+                "answers": [
+                    { "q": 1, "a": "A" },
+                    { "q": 2, "a": "C" },
+                    ...
                 ]
             }
         `;
         parts.push({ text: promptText });
 
-        // PDF Part
-        parts.push({
-            inlineData: {
-                data: buffer.toString("base64"),
-                mimeType: "application/pdf",
-            },
-        });
+        // Gabarito Part (REQUIRED now)
+        if (!gabaritoUrl) {
+            return NextResponse.json({ success: false, error: "Gabarito URL is required for this mode." }, { status: 400 });
+        }
 
-        // Gabarito Part (if exists)
-        if (gabaritoUrl) {
-            try {
-                const gabaritoResponse = await fetch(gabaritoUrl);
-                if (gabaritoResponse.ok) {
-                    const gabaritoArrayBuffer = await gabaritoResponse.arrayBuffer();
-                    const gabaritoBuffer = Buffer.from(gabaritoArrayBuffer);
-                    parts.push({
-                        text: "Este é o arquivo do GABARITO. Use-o para encontrar as respostas corretas:",
-                    });
-                    parts.push({
-                        inlineData: {
-                            data: gabaritoBuffer.toString("base64"),
-                            mimeType: "application/pdf",
-                        },
-                    });
-                }
-            } catch (err) {
-                console.warn("Failed to fetch/include Gabarito:", err);
-            }
+        try {
+            const gabaritoResponse = await fetch(gabaritoUrl);
+            if (!gabaritoResponse.ok) throw new Error("Failed to fetch Gabarito PDF");
+
+            const gabaritoArrayBuffer = await gabaritoResponse.arrayBuffer();
+            const gabaritoBuffer = Buffer.from(gabaritoArrayBuffer);
+
+            parts.push({
+                inlineData: {
+                    data: gabaritoBuffer.toString("base64"),
+                    mimeType: "application/pdf",
+                },
+            });
+        } catch (err: any) {
+            return NextResponse.json({ success: false, error: "Failed to download Gabarito: " + err.message }, { status: 400 });
         }
 
         // 2. Process with Gemini
-        // Increase safety settings? Flash is usually fine.
+        // Use gemini-1.5-flash as it is efficient
+        // If 1.5-flash fails, fallback to 1.0-pro (text only) is not possible with PDF.
+        // We assume 1.5-flash is available. If 404, valid model name must be checked.
+        // Using "gemini-1.5-flash-latest" or just "gemini-1.5-flash"
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const result = await model.generateContent(parts);
@@ -111,7 +93,7 @@ export async function POST(request: Request) {
         const cleanJson = text.replace(/```json|```/g, '').trim();
         const parsedData = JSON.parse(cleanJson);
 
-        return NextResponse.json({ success: true, data: parsedData.questions });
+        return NextResponse.json({ success: true, data: parsedData.answers });
 
     } catch (error: any) {
         console.error("Parse API Error:", error);
