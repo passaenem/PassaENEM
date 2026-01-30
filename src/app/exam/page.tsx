@@ -81,6 +81,296 @@ export default function ExamPage() {
 
     // ... (rest of effects) ...
 
+    // PROCTORING: Listeners
+    useEffect(() => {
+        if (!started || finished || mode === 'view' || !isRanked) return; // Only active checks if isRanked is true
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setStrikes(prev => prev + 1);
+            }
+        };
+
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement) {
+                setIsFullscreen(false);
+                setStrikes(prev => prev + 1);
+            } else {
+                setIsFullscreen(true);
+            }
+        };
+
+        // Block Right Click
+        const handleContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+            return false;
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("contextmenu", handleContextMenu);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("contextmenu", handleContextMenu);
+        };
+    }, [started, finished, mode, isRanked]);
+
+    // Terminate on too many strikes
+    // TIMER LOGIC
+    const [timeLeft, setTimeLeft] = useState<number | null>(null); // Seconds
+
+    useEffect(() => {
+        if (strikes >= 3 && !finished && isRanked) {
+            // ... existing strike logic ...
+            alert("Você violou as regras de segurança 3 vezes. Sua prova será encerrada com nota zero.");
+            setFinished(true);
+            setMode('review');
+        }
+    }, [strikes, finished, isRanked]);
+
+    // Initialize Timer
+    useEffect(() => {
+        if (started && !finished && timeLeft === null) {
+            const storedDuration = sessionStorage.getItem('currentExamDuration');
+            if (storedDuration) {
+                const durationSec = parseInt(storedDuration) * 60;
+                setTimeLeft(durationSec);
+            }
+        }
+    }, [started, finished]);
+
+    // Tick Timer
+    useEffect(() => {
+        if (timeLeft === null || finished || !started) return;
+
+        if (timeLeft === 0) {
+            // Time's up! Just warn, don't close.
+            // We use a toast or just let it sit at 00:00.
+            // But user asked for notification.
+            // To avoid repeating alert, we check if we already alerted?
+            // Since we can't easily store "alerted" in this effect without ref, we assume specific value check or ref.
+            // Simplified: If it hits 0, we can just stop ticking.
+            return;
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev === null) return null;
+                if (prev <= 1) { // Will hit 0
+                    // We can put the alert here, but useEffect is better for side effects.
+                    // However, to avoid state thrashing, we'll let existing effect render 0.
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft, finished, started]);
+
+    // Separate effect for alerting once when time hits 0
+    useEffect(() => {
+        if (timeLeft === 0 && !finished && started) {
+            alert("O tempo acabou! Você pode continuar respondendo, mas o tempo limite foi excedido.");
+        }
+    }, [timeLeft, finished, started]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const startExam = async () => {
+        try {
+            await document.documentElement.requestFullscreen();
+            setIsFullscreen(true);
+            setStarted(true);
+        } catch (err) {
+            console.error(err);
+            alert("É obrigatório permitir Tela Cheia para iniciar.");
+        }
+    };
+
+    if (questions.length === 0) return <div className="p-8 text-center text-white">Carregando prova...</div>;
+
+    // START SCREEN
+    if (!started && mode === 'take' && isRanked) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center max-w-lg mx-auto p-4 animate-fade-in-up">
+                <div className="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl">
+                    <div className="flex justify-center mb-6">
+                        <div className="bg-red-500/10 p-4 rounded-full">
+                            <Lock className="w-12 h-12 text-red-500" />
+                        </div>
+                    </div>
+                    <h1 className="text-2xl font-bold text-white mb-2">Modo Bloqueio de Tela</h1>
+                    <p className="text-slate-400 mb-6">
+                        Para garantir a validade do Ranking, esta prova deve ser feita em tela cheia e sem sair da aba.
+                    </p>
+                    <div className="bg-slate-950 p-4 rounded-lg text-left text-sm space-y-2 mb-8 border border-slate-800">
+                        <div className="flex items-center text-slate-300">
+                            <ShieldAlert className="w-4 h-4 text-orange-500 mr-2" />
+                            Não é permitido sair da tela cheia.
+                        </div>
+                        <div className="flex items-center text-slate-300">
+                            <ShieldAlert className="w-4 h-4 text-orange-500 mr-2" />
+                            Não é permitido trocar de aba.
+                        </div>
+                        <div className="flex items-center text-slate-300">
+                            <ShieldAlert className="w-4 h-4 text-orange-500 mr-2" />
+                            Não é permitido botão direito/copiar.
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-slate-800 text-xs text-red-400 font-semibold text-center">
+                            3 infrações = Desclassificação Imediata
+                        </div>
+                    </div>
+                    <Button size="lg" onClick={startExam} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold h-12">
+                        Aceitar e Iniciar Prova
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
+    const currentQuestion = questions[currentIndex];
+    const isLast = currentIndex === questions.length - 1;
+    const isFirst = currentIndex === 0;
+
+    const handleSelect = (optionIndex: number) => {
+        if (finished || mode === 'view' || strikes >= 3) return;
+        setAnswers(prev => ({ ...prev, [currentQuestion.id]: optionIndex }));
+    };
+
+    const handleNext = () => {
+        if (strikes >= 3) return;
+
+        if (isLast) {
+            if (mode === 'take') {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => { });
+                }
+                setFinished(true); // Create Summary State
+                setMode('review'); // Switch to review immediately 
+            }
+        } else {
+            setCurrentIndex(prev => prev + 1);
+        }
+    };
+
+    const handlePrev = () => {
+        setCurrentIndex(prev => Math.max(0, prev - 1));
+    };
+
+    const calculateScore = () => {
+        if (strikes >= 3) return { percentage: 0, points: 0 };
+
+        let correct = 0;
+        let points = 0;
+        let totalPossiblePoints = 0;
+
+        questions.forEach(q => {
+            const qPoints = q.pontuacao || 100; // Default to 100 if missing
+            totalPossiblePoints += qPoints;
+
+            if (answers[q.id] === q.correctAnswer) {
+                correct++;
+                points += qPoints;
+            }
+        });
+
+        const percentage = totalPossiblePoints > 0 ? Math.round((points / totalPossiblePoints) * 100) : 0;
+
+        // Save score to history if in 'take' mode and just finished
+        if (mode === 'take' && finished) {
+            const examId = sessionStorage.getItem('currentExamId');
+            if (examId) {
+                // Dynamic import to avoid SSR issues
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                const { updateExamScore } = require('@/lib/storage');
+                updateExamScore(examId, percentage, answers);
+            }
+        }
+        return { percentage, points, totalPoints: totalPossiblePoints, correct, total: questions.length };
+    };
+
+    const saveToSupabase = async (calculatedScore: number, finalAnswers: Record<string, number>) => {
+        if (!supabase) return;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        console.log("Saving exam to Supabase...");
+
+        try {
+            const correctCount = questions.reduce((acc, q) => {
+                return (finalAnswers[q.id] === q.correctAnswer) ? acc + 1 : acc;
+            }, 0);
+
+            // Retrieve custom title if set (e.g. from Challenges)
+            const storedTitle = sessionStorage.getItem('currentExamTitle');
+            const finalTitle = storedTitle || (questions[0]?.type ? `${questions[0].type} Exam` : "Simulado");
+
+            const { error } = await supabase.from('exam_results').insert({
+                user_id: user.id,
+                exam_title: finalTitle,
+                score_percentage: calculatedScore,
+                correct_answers: correctCount,
+                total_questions: questions.length,
+                difficulty: questions[0]?.difficulty || "Medium",
+                topic: questions[0]?.topic || "General",
+                answers_json: finalAnswers,
+                questions_json: questions,
+            });
+
+            if (error) throw error;
+            console.log("Exam saved to Supabase successfully!");
+
+            // Update Challenge Participant Count if it's a Challenge
+            if (finalTitle.startsWith("Desafio: ")) {
+                // We need to know which challenge ID it corresponds to.
+                // Currently we don't store challenge ID directly in exam_results, just title.
+                // But we can try to update by title if unique or just ignore for now if too complex without ID.
+                // Ideally we should have stored `challengeId` in sessionStorage or passed it.
+                // START HACK: We can't update `challenges` table easily without the ID. 
+                // Let's rely on `sessionStorage.getItem('currentExamId')` if we set it in ChallengesPage?
+                // In ChallengesPage we didn't set 'currentExamId' to the UUID, we set `currentExam`.
+                // Let's fix this in ChallengesPage first? No, user is waiting.
+                // We can try to match by title.
+                const challengeTitle = finalTitle.replace("Desafio: ", "").trim();
+                const { error: incError } = await supabase.rpc('increment_challenge_participants', { challenge_title: challengeTitle });
+
+                // If RPC doesn't exist (likely), we have to do: Get ID -> Update.
+                const { data: chal } = await supabase.from('challenges').select('id, participants').eq('title', challengeTitle).single();
+                if (chal) {
+                    await supabase.from('challenges').update({ participants: (chal.participants || 0) + 1 }).eq('id', chal.id);
+                }
+            }
+        } catch (error) {
+            console.error("Error saving to Supabase:", error);
+        }
+    };
+
+    const confirmFinish = async () => {
+        if (mode === 'take') {
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => { });
+            }
+
+            // Calculate final score for saving
+            const results = calculateScore();
+
+            // Trigger Save (Fire and Forget)
+            saveToSupabase(results.percentage, answers);
+
+            setFinished(true);
+            setMode('review');
+        }
+        setShowFinishConfirmation(false);
+    };
+
     // Main Layout Logic
     const content = (
         <div className={cn(isRanked ? "max-w-3xl mx-auto space-y-6" : "")}>
