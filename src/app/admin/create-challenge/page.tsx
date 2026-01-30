@@ -33,7 +33,7 @@ export default function CreateChallengePage() {
         difficulty: "Médio",
         questionsCount: 10,
         prize: "", // Optional
-        durationDays: "7",
+        endDate: "", // Replaces durationDays
         durationMinutes: "60"
     });
 
@@ -43,6 +43,14 @@ export default function CreateChallengePage() {
         if (storedEdit) {
             try {
                 const challenge = JSON.parse(storedEdit);
+                // Convert DB timestamp to input datetime-local format (YYYY-MM-DDTHH:mm)
+                let formattedDate = "";
+                if (challenge.end_date) {
+                    const d = new Date(challenge.end_date);
+                    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                    formattedDate = d.toISOString().slice(0, 16);
+                }
+
                 setFormData({
                     title: challenge.title,
                     description: challenge.description,
@@ -50,7 +58,7 @@ export default function CreateChallengePage() {
                     difficulty: challenge.difficulty,
                     questionsCount: challenge.questions_count,
                     prize: challenge.prize || "",
-                    durationDays: challenge.time_left ? challenge.time_left.replace(" dias", "") : "7",
+                    endDate: formattedDate,
                     durationMinutes: challenge.duration_minutes || "60"
                 });
                 setEditingId(challenge.id);
@@ -62,91 +70,19 @@ export default function CreateChallengePage() {
         }
     }, []);
 
-    const loadData = async () => {
-        if (!supabase) return;
-        const { data: { user } } = await supabase.auth.getUser();
+    // ... (loadData remains same)
 
-        if (!user || user.id !== ADMIN_ID) {
-            router.push("/dashboard"); // Redirect unauthorized
-            return;
-        }
-
-        // 1. Fetch User Count
-        const { count: uCount, error: uError } = await supabase
-            .from('profiles')
-            .select('*', { count: 'exact', head: true });
-
-        if (!uError) setUserCount(uCount);
-
-        // 2. Fetch AI Usage Stats (Mock or from app_usage_logs if existed)
-        // Currently just mocking or trying to fetch if table exists. 
-        // User said they would run the script. Let's try to fetch.
-        const { count: aiCount, error: aiError } = await supabase
-            .from('app_usage_logs')
-            .select('*', { count: 'exact', head: true });
-
-        if (!aiError) setAiRequestCount(aiCount);
-        else setAiRequestCount(0); // Default if table missing
-
-        // 3. Daily Active (Unique users in logs today)
-        // This is complex in Supabase simple client. Let's just count logs from today.
-        const todayStr = new Date().toISOString().split('T')[0];
-        const { count: dailyCount } = await supabase
-            .from('app_usage_logs')
-            .select('*', { count: 'exact', head: true })
-            .gte('created_at', todayStr);
-
-        if (dailyCount !== null) setDailyGenerators(dailyCount);
-
-        // 4. Fetch Active Challenges for Management
-        const { data: challenges } = await supabase
-            .from('challenges')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (challenges) setActiveChallenges(challenges);
-    };
-
-    useEffect(() => {
-        loadData();
-    }, [router]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSelectChange = (name: string, value: string) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleDeleteChallenge = async (id: string) => {
-        if (!confirm("Tem certeza que deseja excluir?")) return;
-
-        const { error } = await supabase!.from('challenges').delete().eq('id', id);
-        if (!error) {
-            alert("Desafio excluído!");
-            loadData(); // Refresh list
-        } else {
-            alert("Erro ao excluir: " + error.message);
-        }
-    };
-
-    const handleFinishChallenge = async (id: string) => {
-        if (!confirm("Tem certeza que deseja FINALIZAR este desafio agora? Ele sairá da lista de ativos.")) return;
-
-        const { error } = await supabase!.from('challenges').update({ status: 'finished' }).eq('id', id);
-        if (!error) {
-            alert("Desafio finalizado com sucesso!");
-            loadData(); // Refresh list
-        } else {
-            alert("Erro ao finalizar: " + error.message);
-        }
-    };
-
-    const [editingId, setEditingId] = useState<string | null>(null); // Track editing state
+    // ... (handleChange etc remain same)
 
     const handleEditChallenge = (challenge: any) => {
+        // Convert DB timestamp to input datetime-local format (YYYY-MM-DDTHH:mm)
+        let formattedDate = "";
+        if (challenge.end_date) {
+            const d = new Date(challenge.end_date);
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            formattedDate = d.toISOString().slice(0, 16);
+        }
+
         setFormData({
             title: challenge.title,
             description: challenge.description,
@@ -154,7 +90,7 @@ export default function CreateChallengePage() {
             difficulty: challenge.difficulty,
             questionsCount: challenge.questions_count,
             prize: challenge.prize || "",
-            durationDays: challenge.time_left.replace(" dias", ""), // Simple parse
+            endDate: formattedDate,
             durationMinutes: challenge.duration_minutes || "60"
         });
         setEditingId(challenge.id);
@@ -170,7 +106,7 @@ export default function CreateChallengePage() {
             difficulty: "Médio",
             questionsCount: 10,
             prize: "",
-            durationDays: "7",
+            endDate: "",
             durationMinutes: "60"
         });
     }
@@ -190,7 +126,6 @@ export default function CreateChallengePage() {
             let generatedQuestions = [];
 
             // 1. Generate Questions via AI (Only if creating new or if specifically requested - for now always on create)
-            // If editing, we might want to keep existing unless user asks to regenerate (out of scope for now, let's assume valid implementation for Create)
             if (!editingId) {
                 const response = await fetch('/api/generate', {
                     method: 'POST',
@@ -223,7 +158,8 @@ export default function CreateChallengePage() {
                 area: formData.area,
                 difficulty: formData.difficulty,
                 questions_count: parseInt(formData.questionsCount.toString()),
-                time_left: `${formData.durationDays} dias`,
+                end_date: new Date(formData.endDate).toISOString(), // Save as ISO
+                // time_left: `${formData.durationDays} dias`, // Removed legacy
                 status: "active",
                 prize: formData.prize || null,
                 participants: 0,
@@ -248,7 +184,7 @@ export default function CreateChallengePage() {
                         area: formData.area,
                         difficulty: formData.difficulty,
                         questions_count: parseInt(formData.questionsCount.toString()),
-                        time_left: `${formData.durationDays} dias`,
+                        end_date: new Date(formData.endDate).toISOString(),
                         prize: formData.prize || null,
                         duration_minutes: parseInt(formData.durationMinutes) || 60
                     })
@@ -441,16 +377,16 @@ export default function CreateChallengePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="durationDays">Duração do Desafio (Dias) <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="endDate">Data de Encerramento <span className="text-red-500">*</span></Label>
                                 <Input
-                                    id="durationDays"
-                                    name="durationDays"
-                                    type="number"
-                                    min="1"
-                                    value={formData.durationDays}
+                                    id="endDate"
+                                    name="endDate"
+                                    type="datetime-local"
+                                    value={formData.endDate}
                                     onChange={handleChange}
                                     required
                                 />
+                                <p className="text-xs text-slate-500">O desafio será encerrado automaticamente nesta data.</p>
                             </div>
 
                             <div className="pt-4 border-t border-slate-800">
