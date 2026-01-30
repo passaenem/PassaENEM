@@ -9,7 +9,7 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     try {
         // Use dynamic import for ESM compatibility
         const pdfModule = await import('pdf-parse');
-        const pdf = pdfModule.default || pdfModule;
+        const pdf = (pdfModule as any).default || pdfModule;
         const data = await pdf(buffer);
         return data.text;
     } catch (error) {
