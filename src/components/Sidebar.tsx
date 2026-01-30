@@ -147,6 +147,18 @@ export function Sidebar() {
                     )}
                     {user?.id === ADMIN_ID && (
                         <Link
+                            href="/admin/official-exams"
+                            className={cn(
+                                "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                                pathname === "/admin/official-exams" ? "bg-accent text-accent-foreground" : "text-slate-400"
+                            )}
+                        >
+                            <Banknote className="mr-2 h-4 w-4 text-violet-500" />
+                            Gestão de Provas
+                        </Link>
+                    )}
+                    {user?.id === ADMIN_ID && (
+                        <Link
                             href="/admin/users"
                             className={cn(
                                 "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
