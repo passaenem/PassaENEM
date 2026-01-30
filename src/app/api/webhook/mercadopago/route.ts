@@ -69,7 +69,7 @@ async function handleProActivation(userId: string, amount: number | undefined, t
         .from('profiles')
         .update({
             plan_type: 'pro',
-            credits: 120,
+            credits: 350, // Updated to match LP promise
             plan_end_date: endDate.toISOString(),
         })
         .eq('id', userId);
