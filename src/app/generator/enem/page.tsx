@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,30 @@ export default function EnemGeneratorPage() {
     const [creditWarningOpen, setCreditWarningOpen] = useState(false);
     const [creditInfo, setCreditInfo] = useState({ current: 0, required: 0, plan: 'free' as 'free' | 'pro' | 'admin' });
 
+    // Official Exams State
+    const [examType, setExamType] = useState<'ia' | 'official'>('ia');
+    const [officialExams, setOfficialExams] = useState<any[]>([]);
+    const [loadingOfficial, setLoadingOfficial] = useState(false);
+    const [selectedOfficialId, setSelectedOfficialId] = useState<string | null>(null);
+
+    // Fetch Official Exams when tab changes
+
+
+    useEffect(() => {
+        if (examType === 'official' && officialExams.length === 0) {
+            fetchOfficialExams();
+        }
+    }, [examType]);
+
+    const fetchOfficialExams = async () => {
+        setLoadingOfficial(true);
+        if (supabase) {
+            const { data } = await supabase.from('official_exams').select('*').order('year', { ascending: false });
+            setOfficialExams(data || []);
+        }
+        setLoadingOfficial(false);
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -34,6 +58,63 @@ export default function EnemGeneratorPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        if (examType === 'official') {
+            if (!selectedOfficialId) return;
+
+            // Fetch Structured Questions
+            if (supabase) {
+                const { data: questions } = await supabase
+                    .from('official_questions')
+                    .select('*')
+                    .eq('exam_id', selectedOfficialId)
+                    .order('question_number', { ascending: true });
+
+                const selectedExamMeta = officialExams.find(e => e.id === selectedOfficialId);
+
+                if (questions && questions.length > 0) {
+                    // Adapt to Exam Runner Format
+                    const adaptedQuestions = questions.map(q => ({
+                        id: q.id,
+                        type: 'ENEM',
+                        question: q.statement,
+                        options: q.alternatives,
+                        correctAnswer: q.correct_answer.charCodeAt(0) - 65, // Convert 'A'->0, 'B'->1
+                        explanation: "Gabarito Oficial",
+                        difficulty: 'Médio',
+                        topic: q.area || 'Geral',
+                        context: q.image_url ? `![Imagem da Questão](${q.image_url})` : undefined // Inject image as markdown if exists
+                    }));
+
+                    // Save to Session and Redirect
+                    const newId = Math.random().toString(36).substr(2, 9);
+                    saveExamToHistory({
+                        id: newId,
+                        date: new Date().toISOString(),
+                        type: 'ENEM',
+                        title: selectedExamMeta?.title || "Prova Oficial",
+                        questions: adaptedQuestions
+                    });
+
+                    sessionStorage.setItem('currentExam', JSON.stringify(adaptedQuestions));
+                    sessionStorage.setItem('currentExamId', newId);
+                    sessionStorage.setItem('currentExamDuration', "90"); // Default 90 min for official part
+                    sessionStorage.removeItem('isRanked');
+                    window.location.href = '/exam';
+                    return;
+                } else {
+                    // Fallback to PDF if no questions found (legacy support)
+                    if (selectedExamMeta?.pdf_url && selectedExamMeta.pdf_url.startsWith('http')) {
+                        window.open(selectedExamMeta.pdf_url, '_blank');
+                    } else {
+                        setError("Esta prova ainda não possui questões cadastradas.");
+                    }
+                }
+            }
+            setLoading(false);
+            return;
+        }
+
         const cost = Number(formData.quantidade);
 
         // 1. Validate Max Questions (100)
@@ -151,99 +232,147 @@ export default function EnemGeneratorPage() {
                             </Alert>
                         )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="area">Área do Conhecimento</Label>
-                                <select
-                                    id="area"
-                                    name="area"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    value={formData.area}
-                                    onChange={handleChange}
-                                >
-                                    <option value="Linguagens">Linguagens e Códigos</option>
-                                    <option value="Humanas">Ciências Humanas</option>
-                                    <option value="Natureza">Ciências da Natureza</option>
-                                    <option value="Matemática">Matemática</option>
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="nivel">Nível de Dificuldade</Label>
-                                <select
-                                    id="nivel"
-                                    name="nivel"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    value={formData.nivel}
-                                    onChange={handleChange}
-                                >
-                                    <option value="Iniciante">Iniciante</option>
-                                    <option value="Intermediário">Intermediário</option>
-                                    <option value="Avançado">Avançado</option>
-                                </select>
-                            </div>
+                        {/* Exam Type Toggle */}
+                        <div className="flex p-1 bg-slate-900 rounded-lg mb-6 border border-slate-800">
+                            <button
+                                type="button"
+                                onClick={() => setExamType('ia')}
+                                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${examType === 'ia' ? 'bg-violet-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                Gerar com IA
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setExamType('official')}
+                                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${examType === 'official' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                            >
+                                Prova Oficial (PDF)
+                            </button>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="tema">Tema Específico</Label>
-                            <Input
-                                id="tema"
-                                name="tema"
-                                placeholder="Ex: Funções, Ecologia, Modernismo..."
-                                value={formData.tema}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+                        {examType === 'ia' ? (
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="area">Área do Conhecimento</Label>
+                                        <select
+                                            id="area"
+                                            name="area"
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                            value={formData.area}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="Linguagens">Linguagens e Códigos</option>
+                                            <option value="Humanas">Ciências Humanas</option>
+                                            <option value="Natureza">Ciências da Natureza</option>
+                                            <option value="Matemática">Matemática</option>
+                                        </select>
+                                    </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="quantidade">Qtd. Questões</Label>
-                                <Input
-                                    id="quantidade"
-                                    name="quantidade"
-                                    type="number"
-                                    min="1"
-                                    max="50"
-                                    value={formData.quantidade}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="tempo">Tempo (min)</Label>
-                                <Input
-                                    id="tempo"
-                                    name="tempo"
-                                    type="number"
-                                    min="5"
-                                    value={formData.tempo}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="frequencia">Frequência no ENEM</Label>
-                                <select
-                                    id="frequencia"
-                                    name="frequencia"
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                    value={formData.frequencia}
-                                    onChange={handleChange}
-                                >
-                                    <option value="Baixa">Baixa</option>
-                                    <option value="Média">Média</option>
-                                    <option value="Alta">Alta</option>
-                                </select>
-                            </div>
-                        </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="nivel">Nível de Dificuldade</Label>
+                                        <select
+                                            id="nivel"
+                                            name="nivel"
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                            value={formData.nivel}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="Iniciante">Iniciante</option>
+                                            <option value="Intermediário">Intermediário</option>
+                                            <option value="Avançado">Avançado</option>
+                                        </select>
+                                    </div>
+                                </div>
 
-                        <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                                <div className="space-y-2">
+                                    <Label htmlFor="tema">Tema Específico</Label>
+                                    <Input
+                                        id="tema"
+                                        name="tema"
+                                        placeholder="Ex: Funções, Ecologia, Modernismo..."
+                                        value={formData.tema}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="quantidade">Qtd. Questões</Label>
+                                        <Input
+                                            id="quantidade"
+                                            name="quantidade"
+                                            type="number"
+                                            min="1"
+                                            max="50"
+                                            value={formData.quantidade}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="tempo">Tempo (min)</Label>
+                                        <Input
+                                            id="tempo"
+                                            name="tempo"
+                                            type="number"
+                                            min="5"
+                                            value={formData.tempo}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="frequencia">Frequência no ENEM</Label>
+                                        <select
+                                            id="frequencia"
+                                            name="frequencia"
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                            value={formData.frequencia}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="Baixa">Baixa</option>
+                                            <option value="Média">Média</option>
+                                            <option value="Alta">Alta</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="space-y-4 animate-fade-in">
+                                {loadingOfficial ? (
+                                    <div className="flex justify-center p-4"><Loader2 className="animate-spin text-blue-500" /></div>
+                                ) : officialExams.length === 0 ? (
+                                    <div className="text-center p-4 border border-dashed border-slate-700 rounded-lg text-slate-400">
+                                        Nenhuma prova oficial disponível no momento.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Label>Selecione a Prova</Label>
+                                        <div className="grid gap-2">
+                                            {officialExams.map(exam => (
+                                                <div
+                                                    key={exam.id}
+                                                    onClick={() => setSelectedOfficialId(exam.id)}
+                                                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${selectedOfficialId === exam.id ? 'border-blue-500 bg-blue-500/10' : 'border-slate-800 hover:border-slate-700 bg-slate-900'}`}
+                                                >
+                                                    <span className="font-medium">{exam.title} ({exam.year})</span>
+                                                    {selectedOfficialId === exam.id && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <Button type="submit" className={`w-full ${examType === 'official' ? 'bg-blue-600 hover:bg-blue-700' : ''}`} size="lg" disabled={loading || (examType === 'official' && !selectedOfficialId)}>
                             {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Gerando com IA (Aguarde)...
+                                    {examType === 'ia' ? "Gerando com IA..." : "Carregando Prova..."}
                                 </>
                             ) : (
-                                "Gerar Questões"
+                                examType === 'ia' ? "Gerar Questões" : "Abrir Prova Oficial"
                             )}
                         </Button>
                     </form>

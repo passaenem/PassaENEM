@@ -21,6 +21,13 @@ export function AdminHeader() {
             <div className="flex gap-3">
                 <Button
                     variant="outline"
+                    onClick={() => router.push('/admin/official-exams')}
+                    className="border-violet-700 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20"
+                >
+                    Provas Oficiais
+                </Button>
+                <Button
+                    variant="outline"
                     onClick={() => router.push('/dashboard')}
                     className="border-slate-700 hover:bg-slate-800 text-slate-300"
                 >
