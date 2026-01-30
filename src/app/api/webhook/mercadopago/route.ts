@@ -11,6 +11,9 @@ export async function POST(req: NextRequest) {
         const id = url.searchParams.get("id") || url.searchParams.get("data.id");
 
         console.log(`Webhook received: Topic=${topic}, ID=${id}`);
+        console.log("Full URL:", req.url);
+        // Note: Reading body might consume the stream if we need it later, but here we only use params.
+        // If we needed body, we would clone() it.
 
         if (!id) {
             return NextResponse.json({ status: "ignored", message: "No ID provided" });
