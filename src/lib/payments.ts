@@ -1,6 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
 export async function handleProActivation(userId: string, amount: number | undefined, type: string, paymentId: string) {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("[Payment] CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing! Cannot grant permissions.");
+        return { success: false, error: "Server Configuration Error: Missing Service Key" };
+    }
+
     // Initialize Supabase Admin client to bypass RLS for updates
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,6 +13,7 @@ export async function handleProActivation(userId: string, amount: number | undef
     );
 
     console.log(`[Payment] Activating PRO for user ${userId}, Amount: ${amount}, Type: ${type}, PaymentID: ${paymentId}`);
+    console.log(`[Payment] Using Service Key: ${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 5)}...`);
 
     // 1. Calculate End Date
     const endDate = new Date();
