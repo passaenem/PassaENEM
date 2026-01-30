@@ -32,6 +32,10 @@ export default function ExamPage() {
     const [started, setStarted] = useState(false);
     const [strikes, setStrikes] = useState(0);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isRanked, setIsRanked] = useState(false);
+    const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         const stored = sessionStorage.getItem("currentExam");
