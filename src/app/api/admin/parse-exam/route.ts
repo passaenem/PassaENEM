@@ -50,34 +50,55 @@ export async function POST(request: Request) {
             throw new Error("Gabarito Text appears empty.");
         }
 
-        // 2. Process with Gemini Pro (Text Only)
-        // Using 'gemini-pro' which is widely available and stable for text.
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // 2. Parse Answers with Regex (No AI needed)
+        // Gabarito text usually follows patterns like "1 A", "91 - B", etc.
+        // We look for Number followed by A-E.
 
-        const prompt = `
-            Tarefa: Extrair o GABARITO deste texto obtido da conversão de um PDF.
-            
-            Texto:
-            """
-            ${gabaritoText.slice(0, 15000)}
-            """
-            
-            Instruções:
-            - Identifique o número da questão e a alternativa correta (A, B, C, D, E).
-            - Ignore cabeçalhos, rodapés ou textos irrelevantes.
-            - Retorne APENAS um JSON válido.
-            - Formato: { "answers": [{ "q": 1, "a": "A" }, ...] }
-        `;
+        const answers: { q: number, a: string }[] = [];
+        // Regex matches strictly: Start/Space + (1-3 digits) + separator? + (A-E) + End/Space
+        // Examples: "1 A", "10. C", "45 - B", "12 D"
+        const regex = /(?:^|\s)(\d{1,3})(?:\s*[-–.]\s*|\s+)([A-E])(?=\s|$)/gim;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        let match;
+        while ((match = regex.exec(gabaritoText)) !== null) {
+            const q = parseInt(match[1], 10);
+            const a = match[2].toUpperCase();
 
-        // 3. Parse JSON
-        const cleanJson = text.replace(/```json|```/g, '').trim();
-        const parsedData = JSON.parse(cleanJson);
+            // Basic validation to avoid years (2024) or page numbers usually
+            // ENEM has 180 questions max usually.
+            if (q > 0 && q <= 200) {
+                // Check if duplicate, overwrite or ignore? Overwrite is safer for corrections.
+                const existingIndex = answers.findIndex(item => item.q === q);
+                if (existingIndex >= 0) {
+                    answers[existingIndex].a = a;
+                } else {
+                    answers.push({ q, a });
+                }
+            }
+        }
 
-        return NextResponse.json({ success: true, data: parsedData.answers });
+        // Sort by question number
+        answers.sort((a, b) => a.q - b.q);
+
+        if (answers.length === 0) {
+            // Fallback: Try a simpler Regex if the first one failed completely
+            // Sometimes it's just "1A", "2B"
+            const simpleRegex = /(\d{1,3})([A-E])/gi;
+            while ((match = simpleRegex.exec(gabaritoText)) !== null) {
+                const q = parseInt(match[1], 10);
+                const a = match[2].toUpperCase();
+                if (q > 0 && q <= 200) {
+                    if (!answers.find(i => i.q === q)) answers.push({ q, a });
+                }
+            }
+            answers.sort((a, b) => a.q - b.q);
+        }
+
+        if (answers.length === 0) {
+            throw new Error("Não foi possível identificar padrões de resposta (ex: '1 A') no texto extraído.");
+        }
+
+        return NextResponse.json({ success: true, data: answers });
 
     } catch (error: any) {
         console.error("Parse API Error:", error);
