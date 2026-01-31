@@ -456,7 +456,7 @@ export default function ChallengesPage() {
             </div>
 
             <Tabs defaultValue="active" className="space-y-4" onValueChange={setActiveTab}>
-                <TabsList className="w-full flex justify-start md:justify-center overflow-x-auto no-scrollbar bg-transparent md:bg-muted p-0 md:p-1 gap-2 md:gap-0">
+                <TabsList className="w-full md:w-auto flex md:inline-flex justify-start md:justify-center overflow-x-auto no-scrollbar bg-transparent md:bg-muted p-0 md:p-1 gap-2 md:gap-0">
                     <TabsTrigger value="active" className="whitespace-nowrap flex-shrink-0 data-[state=active]:bg-violet-600 data-[state=active]:text-white border border-slate-800 md:border-transparent rounded-full md:rounded-sm px-4">🔥 Desafios Ativos</TabsTrigger>
                     <TabsTrigger value="performance" className="whitespace-nowrap flex-shrink-0 data-[state=active]:bg-violet-600 data-[state=active]:text-white border border-slate-800 md:border-transparent rounded-full md:rounded-sm px-4">📊 Meu Desempenho</TabsTrigger>
                     <TabsTrigger value="finished" className="whitespace-nowrap flex-shrink-0 data-[state=active]:bg-violet-600 data-[state=active]:text-white border border-slate-800 md:border-transparent rounded-full md:rounded-sm px-4">🏁 Finalizados</TabsTrigger>
