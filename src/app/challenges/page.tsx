@@ -471,9 +471,9 @@ export default function ChallengesPage() {
                             <AlertDescription>Fique ligado! Novos desafios são lançados toda semana.</AlertDescription>
                         </Alert>
                     ) : (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="md:grid md:gap-6 md:grid-cols-2 lg:grid-cols-3 flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4">
                             {activeList.map((challenge) => (
-                                <Card key={challenge.id} className="flex flex-col border-slate-800 bg-slate-900/50 hover:bg-slate-900 transition-colors relative group">
+                                <Card key={challenge.id} className="min-w-[85vw] md:min-w-0 snap-center flex flex-col border-slate-800 bg-slate-900/50 hover:bg-slate-900 transition-colors relative group">
                                     {/* Admin Actions - Absolute Top Right */}
                                     {user && user.id === ADMIN_ID && challenge.id.length > 10 && (
                                         <div className="absolute top-2 right-2 flex gap-1 z-20">

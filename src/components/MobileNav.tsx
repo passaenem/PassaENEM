@@ -7,6 +7,8 @@ import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, M
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { FREE_PLAN_LIMIT, PRO_PLAN_LIMIT, checkAndResetCredits } from "@/lib/credits";
+import { User, Crown, Zap } from "lucide-react";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -22,16 +24,60 @@ export function MobileNav() {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
     const [user, setUser] = useState<any>(null);
+    const [userCredits, setUserCredits] = useState<{ credits: number, plan: string }>({ credits: 0, plan: 'free' });
 
     useEffect(() => {
         const checkUser = async () => {
             if (supabase) {
                 const { data: { user } } = await supabase.auth.getUser();
                 setUser(user);
+
+                if (user) {
+                    await checkAndResetCredits(user.id);
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('credits, plan_type')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profile) {
+                        setUserCredits({
+                            credits: profile.credits,
+                            plan: profile.plan_type || 'free'
+                        });
+                    }
+                }
             }
         };
         checkUser();
-    }, []);
+
+        let channel: any = null;
+
+        if (supabase) {
+            channel = supabase
+                .channel('db-changes-mobile')
+                // @ts-ignore
+                .on(
+                    'postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'profiles' },
+                    (payload: any) => {
+                        if (user && payload.new.id === user.id) {
+                            setUserCredits({
+                                credits: payload.new.credits,
+                                plan: payload.new.plan_type || 'free'
+                            });
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        return () => {
+            if (supabase && channel) {
+                supabase.removeChannel(channel);
+            }
+        }
+    }, [user?.id]);
 
     const handleLogout = async () => {
         if (supabase) {
@@ -134,7 +180,62 @@ export function MobileNav() {
                                 </Link>
                             </>
                         )}
-                        <div className="pt-4 border-t border-slate-800 mt-4">
+                        <div className="pt-4 border-t border-slate-800 mt-4 space-y-4">
+                            {user && (
+                                <div className="rounded-lg bg-muted/50 p-4 border border-slate-800">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                                            {user?.id === ADMIN_ID ? (
+                                                <ShieldAlert className="w-4 h-4 text-red-500" />
+                                            ) : userCredits.plan === 'pro' ? (
+                                                <Crown className="w-4 h-4 text-yellow-500" />
+                                            ) : (
+                                                <User className="w-4 h-4 text-slate-400" />
+                                            )}
+                                            {user?.id === ADMIN_ID ? 'Admin Master' : userCredits.plan === 'pro' ? 'Plano PRO' : 'Plano Grátis'}
+                                        </h4>
+                                        {userCredits.plan === 'free' && user?.id !== ADMIN_ID && (
+                                            <button onClick={() => { setOpen(false); window.location.href = '/planos'; }} className="text-[10px] text-green-400 hover:text-green-300 font-bold uppercase tracking-wider bg-transparent border-0 p-0 cursor-pointer">
+                                                Upgrade
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {user?.id === ADMIN_ID ? (
+                                        <div className="flex justify-between items-center mt-2">
+                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                                <Zap className="w-3 h-3 text-yellow-500" />
+                                                CRÉDITOS
+                                            </p>
+                                            <p className="text-xs font-mono font-bold text-white tracking-widest">
+                                                ∞ ILIMITADO
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="mt-2 h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                                                <div
+                                                    className={cn(
+                                                        "h-full rounded-full transition-all duration-500",
+                                                        userCredits.credits === 0 ? "bg-red-500" :
+                                                            userCredits.plan === 'pro' ? "bg-gradient-to-r from-yellow-400 to-yellow-600" : "bg-gradient-to-r from-violet-500 to-violet-700"
+                                                    )}
+                                                    style={{ width: `${Math.min(100, (userCredits.credits / (userCredits.plan === 'pro' ? PRO_PLAN_LIMIT : FREE_PLAN_LIMIT)) * 100)}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex justify-between items-center mt-2">
+                                                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                                    <Zap className="w-3 h-3" />
+                                                    CRÉDITOS
+                                                </p>
+                                                <p className="text-xs font-mono font-bold text-white">
+                                                    {userCredits.credits}/{userCredits.plan === 'pro' ? PRO_PLAN_LIMIT : FREE_PLAN_LIMIT}
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                             {user ? (
                                 <div className="flex items-center justify-between px-3">
                                     <div className="flex items-center gap-2">

@@ -443,9 +443,12 @@ export default function ExamPage() {
                             <span>{currentQuestion.topic} • {currentQuestion.difficulty}</span>
                             <span className="text-violet-400 font-bold">{currentQuestion.pontuacao || 100} PTS</span>
                         </div>
-                        {finished && !isRanked && (answers[currentQuestion.id] === currentQuestion.correctAnswer ?
-                            <span className="text-green-500 font-bold">Correta</span> :
-                            (finished && answers[currentQuestion.id] !== undefined) ? <span className="text-red-500 font-bold">Incorreta</span> : null
+                        {finished && !isRanked && (
+                            answers[currentQuestion.id] === undefined ?
+                                <span className="text-yellow-500 font-bold">Não Respondida</span> :
+                                answers[currentQuestion.id] === currentQuestion.correctAnswer ?
+                                    <span className="text-green-500 font-bold">Correta</span> :
+                                    <span className="text-red-500 font-bold">Incorreta</span>
                         )}
                     </CardTitle>
                 </CardHeader>
@@ -509,7 +512,24 @@ export default function ExamPage() {
                                     )}>
                                         {String.fromCharCode(65 + idx)}
                                     </div>
-                                    <span className="text-sm md:text-base">{option}</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm md:text-base">{option}</span>
+                                        {finished && !isRanked && isCorrect && (
+                                            <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider mt-1">
+                                                ✅ Gabarito
+                                            </span>
+                                        )}
+                                        {finished && !isRanked && isSelected && !isCorrect && (
+                                            <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider mt-1">
+                                                ❌ Sua Resposta
+                                            </span>
+                                        )}
+                                        {finished && !isRanked && isSelected && isCorrect && (
+                                            <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider mt-1">
+                                                ✅ Sua Resposta
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })}
@@ -569,7 +589,7 @@ export default function ExamPage() {
                 )}
             </div>
         </div>
-    </div>
+    </div >
     );
 
     return (
