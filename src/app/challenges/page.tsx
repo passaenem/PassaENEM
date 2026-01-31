@@ -129,16 +129,24 @@ export default function ChallengesPage() {
                 }));
 
                 // Auto-Finish Expired Challenges
-                // This is a client-side check for display. Ideally backend cron does this.
-                // But we can filter `active` list to exlude expired ones or mark them.
-                setDbChallenges(challengesWithRanking.map(c => {
-                    const isExpired = c.end_date && new Date(c.end_date) < new Date();
-                    if (isExpired && c.status === 'active') {
-                        // We could visually mark it or strictly change status locally
-                        // For now, let's just let the UI handle the "Expired" state
+                const now = new Date();
+                const updatedChallenges = await Promise.all(challengesWithRanking.map(async (c) => {
+                    if (c.status === 'active' && c.end_date) {
+                        const endDate = new Date(c.end_date);
+                        if (endDate < now) {
+                            console.log(`Challenge ${c.title} expired. Finishing...`);
+                            // Update DB
+                            if (supabase) {
+                                await supabase.from('challenges').update({ status: 'finished' }).eq('id', c.id);
+                            }
+                            // Update Local State Object
+                            return { ...c, status: 'finished' };
+                        }
                     }
                     return c;
                 }));
+
+                setDbChallenges(updatedChallenges as Challenge[]);
             }
         };
 
