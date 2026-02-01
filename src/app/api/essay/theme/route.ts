@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ theme: data.theme, support_text: data.support_text });
 
-        return NextResponse.json({ theme });
+
     } catch (error) {
         console.error("Error generating theme:", error);
         return NextResponse.json(
