@@ -22,8 +22,14 @@ export async function POST(req: NextRequest) {
         const response = await result.response;
         const text = response.text().trim();
 
-        // Remove markdown code blocks if present (Gemini sometimes adds them despite instructions)
-        const jsonString = text.replace(/^```json\s*|\s*```$/g, '');
+        // Robust JSON extraction
+        const startIndex = text.indexOf('{');
+        const endIndex = text.lastIndexOf('}');
+
+        let jsonString = text;
+        if (startIndex !== -1 && endIndex !== -1) {
+            jsonString = text.substring(startIndex, endIndex + 1);
+        }
 
         const data = JSON.parse(jsonString);
 
