@@ -125,39 +125,7 @@ export function PricingSection({ user }: PricingSectionProps) {
                         </div>
                     </div>
 
-                    {/* TEST PLAN CARD (Temporary) */}
-                    <div className="p-6 rounded-2xl bg-slate-900 border border-slate-700 flex flex-col hover:border-slate-500 transition-colors">
-                        <h3 className="text-xl font-bold text-white mb-2">Plano Teste</h3>
-                        <p className="text-slate-400 mb-6 font-medium text-sm">Validar Pagamento</p>
-                        <div className="flex items-baseline gap-1 mb-6">
-                            <span className="text-3xl font-bold text-white">R$ 0,10</span>
-                            <span className="text-slate-500 text-sm">/único</span>
-                        </div>
 
-                        <ul className="space-y-3 mb-8 flex-1 text-sm">
-                            <li className="flex items-center gap-2 text-white">
-                                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                <strong>Libera Questões</strong>
-                            </li>
-                            <li className="flex items-center gap-2 text-white">
-                                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                Ativa Status PRO
-                            </li>
-                            <li className="flex items-center gap-2 text-white">
-                                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                Acesso ao Dashboard
-                            </li>
-                        </ul>
-
-                        <div className="mt-auto w-full">
-                            <Button
-                                className="w-full text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-                                onClick={() => handleSubscribe('test')}
-                            >
-                                Testar (R$ 0,10)
-                            </Button>
-                        </div>
-                    </div>
 
                     {/* Pro 6-Months Plan (Best Value) */}
                     <div className="p-6 rounded-2xl bg-gradient-to-b from-violet-900/40 to-slate-900 border border-violet-500 flex flex-col relative overflow-hidden group shadow-2xl shadow-violet-900/20 scale-105 z-10">

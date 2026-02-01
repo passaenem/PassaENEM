@@ -186,7 +186,7 @@ export default function LandingPage() {
                             </div>
                             <h3 className="text-xl font-bold mb-2">Correção com IA</h3>
                             <p className="text-slate-400">
-                                Entenda onde errou com explicações detalhadas. Aprenda enquanto compete e aumente suas chances de ganhar.
+                                Redações corrigidas em segundos com nota detalhada por competência e feedback pedagógico completo.
                             </p>
                         </div>
                     </div>
@@ -261,6 +261,10 @@ export default function LandingPage() {
                                     <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
                                     Ranking com Premiação
                                 </li>
+                                <li className="flex items-center gap-2 text-white">
+                                    <CheckCircle className="w-4 h-4 text-pink-400 flex-shrink-0" />
+                                    <strong>Redação com IA</strong>
+                                </li>
                             </ul>
 
                             <div className="mt-auto w-full">
@@ -275,39 +279,7 @@ export default function LandingPage() {
 
 
 
-                        {/* TEST PLAN CARD (Temporary) */}
-                        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col hover:border-slate-700 transition-all opacity-80 hover:opacity-100">
-                            <h3 className="text-xl font-bold text-white mb-2">Plano Teste</h3>
-                            <p className="text-slate-400 mb-6 font-medium text-sm">Validar Pagamento</p>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-3xl font-bold text-white">R$ 0,10</span>
-                                <span className="text-slate-500 text-sm">/único</span>
-                            </div>
 
-                            <ul className="space-y-3 mb-8 flex-1 text-sm">
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                    <strong>Libera Questões</strong>
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                    Ativa Status PRO
-                                </li>
-                                <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                                    Acesso ao Dashboard
-                                </li>
-                            </ul>
-
-                            <div className="mt-auto w-full">
-                                <Button
-                                    className="w-full text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-                                    onClick={() => handleSubscribe('test')}
-                                >
-                                    Testar (R$ 0,10)
-                                </Button>
-                            </div>
-                        </div>
 
                         {/* Pro 6-Months Plan (Best Value) */}
                         <div className="p-6 rounded-2xl bg-gradient-to-b from-violet-900/40 to-slate-900 border border-violet-500 flex flex-col relative overflow-hidden group shadow-2xl shadow-violet-900/20 scale-105 z-10">
@@ -350,6 +322,12 @@ export default function LandingPage() {
                                         <CheckCircle className="w-3 h-3 text-violet-400" />
                                     </div>
                                     Histórico Avançado
+                                </li>
+                                <li className="flex items-center gap-2 text-white">
+                                    <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                        <CheckCircle className="w-3 h-3 text-violet-400" />
+                                    </div>
+                                    <span className="text-pink-400 font-bold">Redação Ilimitada*</span>
                                 </li>
                             </ul>
 
