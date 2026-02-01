@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, CheckCircle, AlertTriangle, BookOpen, Star, ArrowRight, Lock, Crown, Sparkles } from "lucide-react";
+import { Loader2, CheckCircle, AlertTriangle, BookOpen, Star, ArrowRight, Lock, Crown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { EssayResult } from "@/lib/essays";
 import { checkCredits, deductCredits } from "@/lib/credits";
@@ -266,7 +266,7 @@ export default function RedacaoPage() {
                                 variant="outline"
                                 className="h-12 border-slate-700 text-violet-400 hover:text-violet-300 hover:bg-slate-800 shrink-0"
                             >
-                                {loadingTheme ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                                {loadingTheme ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4 mr-2" />}
                                 {loadingTheme ? "Gerando..." : "Gerar com IA"}
                             </Button>
                         </div>
