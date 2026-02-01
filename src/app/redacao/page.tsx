@@ -291,10 +291,10 @@ export default function RedacaoPage() {
                         <label className="block text-sm font-medium text-slate-400 mb-2">Tema da Redação</label>
                         <div className="flex gap-2">
                             <Input
-                                placeholder="Ex: Os desafios da educação no Brasil..."
+                                placeholder="Clique em 'Gerar com IA' para definir o tema..."
                                 value={theme}
-                                onChange={(e) => setTheme(e.target.value)}
-                                className="bg-slate-950 border-slate-800 text-white h-12 flex-1"
+                                readOnly
+                                className="bg-slate-950 border-slate-800 text-white h-12 flex-1 cursor-not-allowed opacity-80"
                             />
                             <Button
                                 onClick={handleGenerateTheme}
