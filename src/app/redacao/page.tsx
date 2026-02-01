@@ -23,33 +23,59 @@ export default function RedacaoPage() {
 
     useEffect(() => {
         const checkAccess = async () => {
-            if (!supabase) return;
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                // Check if admin
-                if (user.id === "426d48bb-fc97-4461-acc9-a8a59445b72d") {
-                    setIsPro(true);
+            console.log("Checking access...");
+            try {
+                if (!supabase) {
+                    console.error("Supabase client is null");
+                    setIsPro(false); // Fail safe
                     setCheckingAuth(false);
                     return;
                 }
 
-                // Check profile
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('plan_type')
-                    .eq('id', user.id)
-                    .single();
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-                if (profile && (profile.plan_type === 'pro' || profile.plan_type === 'admin')) {
-                    setIsPro(true);
+                if (authError) {
+                    console.error("Auth error:", authError);
+                    setIsPro(false);
+                    setCheckingAuth(false);
+                    return;
+                }
+
+                if (user) {
+                    // Check if admin
+                    if (user.id === "426d48bb-fc97-4461-acc9-a8a59445b72d") {
+                        setIsPro(true);
+                        setCheckingAuth(false);
+                        return;
+                    }
+
+                    // Check profile
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('plan_type')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (profileError) {
+                        console.error("Profile error:", profileError);
+                        // If no profile, assume free? or error?
+                        // If error is PGRST116 (0 rows), it implies free/new user.
+                    }
+
+                    if (profile && (profile.plan_type === 'pro' || profile.plan_type === 'admin')) {
+                        setIsPro(true);
+                    } else {
+                        setIsPro(false);
+                    }
                 } else {
                     setIsPro(false);
                 }
-            } else {
+            } catch (err) {
+                console.error("Unexpected error in checkAccess:", err);
                 setIsPro(false);
+            } finally {
+                setCheckingAuth(false);
             }
-            setCheckingAuth(false);
         };
         checkAccess();
     }, []);
@@ -70,7 +96,10 @@ export default function RedacaoPage() {
 
         try {
             // 1. Get User
-            const { data: { user } } = await supabase!.auth.getUser();
+            if (!supabase) {
+                throw new Error("Sistema indisponível. Tente recarregar.");
+            }
+            const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 setError("Você precisa estar logado.");
                 setLoading(false);
