@@ -161,11 +161,12 @@ export default function ChallengesPage() {
 
         if (diff <= 0) return "Encerrado";
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-        if (days > 0) return `${days} dias restantes`;
-        return `${hours} horas restantes`;
+        return end.toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     const handleDelete = async (id: string) => {
@@ -520,7 +521,7 @@ export default function ChallengesPage() {
                                         <div className="flex flex-col gap-2">
                                             <div className="flex items-center text-sm text-slate-400 gap-4">
                                                 <div className="flex items-center gap-1" title="Participantes"><Users className="w-4 h-4" /> {challenge.participants}</div>
-                                                <div className="flex items-center gap-1" title="Tempo Restante"><Clock className="w-4 h-4" /> {challenge.timeLeft}</div>
+                                                <div className="flex items-center gap-1" title="Encerramento"><Clock className="w-4 h-4" /> {challenge.timeLeft}</div>
                                             </div>
 
                                             {/* RANKING DISPLAY - TOP 3 */}
