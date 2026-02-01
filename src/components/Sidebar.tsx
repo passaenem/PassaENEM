@@ -12,6 +12,7 @@ const navigation = [
     { name: "Minhas Provas", href: "/history", icon: History },
     { name: "Desafios", href: "/challenges", icon: Trophy },
     { name: "Redação", href: "/redacao", icon: PenTool },
+    { name: "Minhas Redações", href: "/redacao/history", icon: History },
     { name: "Comunidade", href: "https://chat.whatsapp.com/EbKOEBYCHvA0OgBbepywny?mode=gi_c", icon: Users },
 ];
 
