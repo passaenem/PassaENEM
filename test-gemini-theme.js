@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GEMINI_API_KEY = process.env.GOOGLE_API_KEY || "";
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-export async function POST(req: NextRequest) {
+const API_KEY = "AIzaSyBW4Ug6dKAdotgD4cCCVF7UYJwYICrCcFw";
+const genAI = new GoogleGenerativeAI(API_KEY);
+
+async function testThemeGeneration() {
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        console.log("Initializing model... Trying gemini-1.5-pro");
+        // Try a safer, standard model name if flash is failing
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
         const prompt = `Gere um tema de redação no estilo ENEM. 
         O tema deve ser atual, relevante para a sociedade brasileira e seguir o padrão de frase temática do ENEM (ex: "Os desafios de...", "A importância de...", "Caminhos para combater...").
@@ -18,11 +20,16 @@ export async function POST(req: NextRequest) {
             "support_text": "O texto de apoio aqui"
         }`;
 
+        console.log("Sending prompt to Gemini...");
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text().trim();
 
-        // Robust JSON extraction
+        console.log("\nRAW OUTPUT START:");
+        console.log(text);
+        console.log("RAW OUTPUT END\n");
+
+        // Robust JSON extraction logic from route.ts
         const startIndex = text.indexOf('{');
         const endIndex = text.lastIndexOf('}');
 
@@ -31,16 +38,17 @@ export async function POST(req: NextRequest) {
             jsonString = text.substring(startIndex, endIndex + 1);
         }
 
+        console.log("Extracted JSON String:", jsonString);
+
         const data = JSON.parse(jsonString);
-
-        return NextResponse.json({ theme: data.theme, support_text: data.support_text });
-
+        console.log("\nParsed Data:");
+        console.log("Theme:", data.theme);
+        console.log("Support Text:", data.support_text);
+        console.log("\nSUCCESS! Logic works.");
 
     } catch (error) {
-        console.error("Error generating theme:", error);
-        return NextResponse.json(
-            { error: "Failed to generate theme" },
-            { status: 500 }
-        );
+        console.error("ERROR:", error);
     }
 }
+
+testThemeGeneration();
