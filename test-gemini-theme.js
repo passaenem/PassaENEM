@@ -6,9 +6,9 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 async function testThemeGeneration() {
     try {
-        console.log("Initializing model... Trying gemini-1.5-pro");
-        // Try a safer, standard model name if flash is failing
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        console.log("Initializing model... Trying gemini-2.0-flash");
+        // Update to the model found in the working correction route
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const prompt = `Gere um tema de redação no estilo ENEM. 
         O tema deve ser atual, relevante para a sociedade brasileira e seguir o padrão de frase temática do ENEM (ex: "Os desafios de...", "A importância de...", "Caminhos para combater...").
