@@ -162,6 +162,23 @@ export default function RedacaoPage() {
         }
     };
 
+    const [loadingTheme, setLoadingTheme] = useState(false);
+
+    const handleGenerateTheme = async () => {
+        setLoadingTheme(true);
+        try {
+            const response = await fetch("/api/essay/theme", { method: "POST" });
+            const data = await response.json();
+            if (data.theme) {
+                setTheme(data.theme);
+            }
+        } catch (error) {
+            console.error("Error fetching theme:", error);
+        } finally {
+            setLoadingTheme(false);
+        }
+    };
+
     if (checkingAuth) {
         return (
             <div className="flex h-screen bg-slate-950 items-center justify-center">
