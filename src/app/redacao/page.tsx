@@ -164,21 +164,35 @@ export default function RedacaoPage() {
 
     const [loadingTheme, setLoadingTheme] = useState(false);
     const [supportingText, setSupportingText] = useState("");
+    const [debugLog, setDebugLog] = useState("");
 
     const handleGenerateTheme = async () => {
         setLoadingTheme(true);
         setSupportingText(""); // Reset previous text
+        setDebugLog("Iniciando requisição...");
+
         try {
             const response = await fetch("/api/essay/theme", { method: "POST" });
-            const data = await response.json();
+            const statusText = `Status: ${response.status} ${response.statusText}`;
+            setDebugLog(prev => prev + "\n" + statusText);
+
+            const textData = await response.text();
+            setDebugLog(prev => prev + "\nBody: " + textData.substring(0, 500)); // Show first 500 chars
+
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status} - ${textData}`);
+            }
+
+            const data = JSON.parse(textData);
             if (data.theme) {
                 setTheme(data.theme);
             }
             if (data.support_text) {
                 setSupportingText(data.support_text);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching theme:", error);
+            setDebugLog(prev => prev + "\nERROR: " + error.message);
         } finally {
             setLoadingTheme(false);
         }
@@ -307,6 +321,13 @@ export default function RedacaoPage() {
                             </Button>
                         </div>
                     </div>
+
+                    {/* DEBUG LOG - REMOVE AFTER FIX */}
+                    {debugLog && (
+                        <div className="bg-black/50 p-4 rounded text-xs font-mono text-green-400 overflow-auto max-h-40 border border-green-900 mb-4 whitespace-pre-wrap">
+                            STATUS: {debugLog}
+                        </div>
+                    )}
 
                     {supportingText && (
                         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 animate-in fade-in slide-in-from-top-2">
