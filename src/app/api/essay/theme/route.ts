@@ -10,11 +10,24 @@ export async function POST(req: NextRequest) {
 
         const prompt = `Gere um tema de redação no estilo ENEM. 
         O tema deve ser atual, relevante para a sociedade brasileira e seguir o padrão de frase temática do ENEM (ex: "Os desafios de...", "A importância de...", "Caminhos para combater...").
-        Retorne APENAS o título do tema, sem aspas e sem texto adicional.`;
+        Além do tema, gere um pequeno texto motivador (texto de apoio) de 1 parágrafo (aprox. 50-80 palavras) dando contexto sobre o assunto, citando algum dado ou fato relevante.
+        
+        Retorne APENAS um JSON no seguinte formato, sem markdown ou code blocks:
+        {
+            "theme": "O tema gerado aqui",
+            "support_text": "O texto de apoio aqui"
+        }`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const theme = response.text().trim();
+        const text = response.text().trim();
+
+        // Remove markdown code blocks if present (Gemini sometimes adds them despite instructions)
+        const jsonString = text.replace(/^```json\s*|\s*```$/g, '');
+
+        const data = JSON.parse(jsonString);
+
+        return NextResponse.json({ theme: data.theme, support_text: data.support_text });
 
         return NextResponse.json({ theme });
     } catch (error) {

@@ -163,14 +163,19 @@ export default function RedacaoPage() {
     };
 
     const [loadingTheme, setLoadingTheme] = useState(false);
+    const [supportingText, setSupportingText] = useState("");
 
     const handleGenerateTheme = async () => {
         setLoadingTheme(true);
+        setSupportingText(""); // Reset previous text
         try {
             const response = await fetch("/api/essay/theme", { method: "POST" });
             const data = await response.json();
             if (data.theme) {
                 setTheme(data.theme);
+            }
+            if (data.support_text) {
+                setSupportingText(data.support_text);
             }
         } catch (error) {
             console.error("Error fetching theme:", error);
@@ -302,6 +307,18 @@ export default function RedacaoPage() {
                             </Button>
                         </div>
                     </div>
+
+                    {supportingText && (
+                        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 animate-in fade-in slide-in-from-top-2">
+                            <h3 className="text-sm font-bold text-violet-400 mb-2 flex items-center gap-2">
+                                <BookOpen className="w-4 h-4" />
+                                Texto de Apoio
+                            </h3>
+                            <p className="text-slate-300 text-sm leading-relaxed italic border-l-2 border-slate-700 pl-4">
+                                "{supportingText}"
+                            </p>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-slate-400 mb-2">Sua Redação</label>
