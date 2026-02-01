@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ theme: data.theme, support_text: data.support_text });
 
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error generating theme:", error);
         return NextResponse.json(
-            { error: "Failed to generate theme" },
+            { error: `Failed to generate theme: ${error.message || error}` },
             { status: 500 }
         );
     }
