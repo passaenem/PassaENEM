@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard, ShieldAlert, Users, PenTool, MessageSquareHeart } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard, ShieldAlert, Users, PenTool, MessageSquareHeart, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Gerador ENEM", href: "/generator/enem", icon: GraduationCap },
     { name: "Gerador Concursos", href: "/generator/concurso", icon: Briefcase },
+    { name: "Cronograma", href: "/cronograma", icon: Calendar },
     { name: "Minhas Provas", href: "/history", icon: History },
     { name: "Desafios", href: "/challenges", icon: Trophy },
     { name: "Redação", href: "/redacao", icon: PenTool },

@@ -47,87 +47,115 @@ export async function POST(request: Request) {
         }
 
         // 1. Construct the Prompt
+        // NEW: EXPERT EDUCATOR PERSONA (Applied to both CONCURSO and ENEM logic)
+        // We unify the logic to ensure high quality for all types.
+
         let finalPrompt = "";
+        const commonRules = `
+Você é um educador especialista em provas do ENEM e concursos públicos, com foco em aprendizado real, estratégia de prova e desenvolvimento cognitivo do aluno.
+
+OBJETIVO PRINCIPAL:
+Não apenas avaliar, mas ENSINAR o aluno a compreender o conteúdo, memorizar conceitos e melhorar o desempenho em provas reais.
+
+DIRETRIZES OBRIGATÓRIAS:
+
+1. CRIAÇÃO DE QUESTÕES (BASE REAL)
+- AJA COMO UM BANCO DE QUESTÕES: Baseie-se fortemente em questões REAIS que caíram em provas anteriores (2018-2025) da banca/prova solicitada.
+- Se possível, adapte questões clássicas para garantir fidelidade ao estilo de cobrança.
+- Priorize os temas "queridinhos" da banca (aqueles que sempre caem).
+- O enunciado deve ser rico e contextualizado, idêntico ao da prova real.
+
+2. EXPLICAÇÃO PEDAGÓGICA (SUPER DETALHADA)
+Para cada questão, a explicação DEVE ser uma mini-aula contendo:
+a) [Conceito]: Explicação técnica profunda, mas acessível.
+b) [Por que a resposta é X?]: Analise a alternativa correta.
+c) [Por que não as outras?]: Explique brevemente o erro das incorretas.
+d) [Metáfora]: UMA metáfora simples do cotidiano para fixar.
+e) [Estratégia de Prova]: Como "matar" essa questão rapidamente.
+
+3. USO DE METÁFORAS
+- Claras, curtas e cotidianas (ex: "Pense na MITOCÔNDRIA como uma USINA DE FORÇA").
+- Nunca substituir o conceito técnico, apenas ilustrar.
+
+4. TOM E POSTURA
+- Você é um professor mentor experiente.
+- Foco total em aprovação.
+
+5. FORMATO DE SAÍDA
+Retorne APENAS um JSON válido.
+`;
 
         if (type === 'CONCURSO') {
             finalPrompt = `
-Você é uma IA especializada na criação de questões para concursos públicos brasileiros.
-As questões devem seguir o estilo de bancas organizadoras reais e respeitar o nível do cargo.
+${commonRules}
 
-Parâmetros recebidos:
-- Área do Concurso: ${params.area || "Geral"}
+CONTEXTO ESPECÍFICO (CONCURSO REAL):
+- Área: ${params.area || "Geral"}
 - Subárea / Cargo: ${params.cargo || "Não especificado"}
-- Banca: ${params.banca || "Genérica / Estilo Geral"}
+- Banca: ${params.banca || "Genérica"}
 - Disciplina: ${params.disciplina || "Conhecimentos Gerais"}
-- Nível de dificuldade: ${params.nivel || "Médio"}
-- Quantidade de questões: ${quantity}
+- Nível: ${params.nivel || "Médio"}
+- Quantidade: ${quantity}
 
-Regras obrigatórias:
-1. Se houver Subárea / Cargo, as questões DEVEM ser específicas para esse cargo.
-2. Caso a Área possua múltiplas subáreas (ex: Saúde, Policial, Tecnologia), NÃO gere conteúdo genérico.
-3. Respeite o estilo da banca informada:
-   - FCC: enunciados longos, alternativas técnicas
-   - FGV: contextualização, interpretação e casos práticos
-   - VUNESP: objetividade e literalidade
-   - CESPE/Cebraspe: assertivas certo/errado ou alto rigor conceitual (Sempre adapte para Múltipla Escolha ABCDE neste sistema)
-   - IBFC / AOCP: abordagem direta e cobrança normativa
+MEMÓRIA DA BANCA (${params.banca || "Genérica"}):
+- Busque na sua base de conhecimento o estilo exato desta banca.
+- Se for CEBRASPE: Crie questões de "Certo/Errado" adaptadas para 5 alternativas ou Múltipla Escolha difícil.
+- Se for FGV: Use textos longos e casos práticos exaustivos.
+- Se for VUNESP: Seja direto, cobrando lei seca ou gramática normativa.
 
-Siga OBRIGATORIAMENTE o passo a passo abaixo antes de gerar qualquer conteúdo.
-
-========================
-PASSO 1 — PLANEJAMENTO DA PROVA
-========================
-Antes de escrever as questões, planeje mentalmente:
-- Distribuição equilibrada de dificuldade
-- Linguagem adequada ao nível informado
-- Apenas UMA alternativa correta por questão
-- Conteúdo coerente com a área e o tema
-
-========================
-PASSO 2 — FORMATO DE SAÍDA (OBRIGATÓRIO)
-========================
-Retorne APENAS um JSON válido, sem textos fora dele, seguindo exatamente este modelo:
-
+JSON ESPERADO:
 {
   "tipo_prova": "CONCURSO",
   "area": "${params.area}",
   "tema": "${params.disciplina}",
-  "tempo_total_minutos": ${params.tempo || 15},
-  "pontuacao_total": ${quantity},
   "questoes": [
     {
       "id": 1,
-      "enunciado": "Texto completo da questão",
-      "alternativas": {
-        "A": "Texto alternativa A",
-        "B": "Texto alternativa B",
-        "C": "Texto alternativa C",
-        "D": "Texto alternativa D",
-        "E": "Texto alternativa E"
-      },
+      "enunciado": "Texto da questão (Estilo Banca Real)...",
+      "alternativas": { "A": "...", "B": "...", "C": "...", "D": "...", "E": "..." },
       "alternativa_correta": "A",
-      "explicacao": "Explicação clara e objetiva",
+      "explicacao": "**Análise Técnica:** ...\\n\\n💡 **Metáfora:** ...\\n\\n❌ **Por que as outras erraram?** ...\\n\\n🧠 **Estratégia de Banca:** ...",
       "dificuldade": "${params.nivel}",
       "pontuacao": 175
     }
   ]
 }
-
-REGRAS FINAIS (CRÍTICAS):
-- NÃO escreva nada fora do JSON
-- NÃO use markdown
-- NÃO explique o que está fazendo
-- NÃO invente dados incorretos
 `;
         } else {
-            // Default (ENEM or General)
-            finalPrompt = PROMPTS.SYSTEM_BASE
-                .replace('{tipo_prova}', type)
-                .replace('{area}', params.area || "Geral")
-                .replace('{tema}', params.tema || params.disciplina || "Geral")
-                .replace('{nivel}', params.nivel || "Médio")
-                .replace('{quantidade}', quantity.toString())
-                .replace('{tempo}', params.tempo || 15);
+            // ENEM / GERAL Logic
+            finalPrompt = `
+${commonRules}
+
+CONTEXTO ESPECÍFICO (ENEM / VESTIBULAR):
+- Área: ${params.area || "Geral"}
+- Disciplina/Tema: ${params.tema || params.disciplina || "Geral"}
+- Nível: ${params.nivel || "Médio"}
+- Quantidade: ${quantity}
+
+MEMÓRIA DO ENEM (2018-2024):
+- Simule questões que poderiam estar na prova oficial.
+- Contextualização OBRIGATÓRIA (Use textos base, gráficos descritos ou situações-problema).
+- A correta deve ser a "mais completa" ou "socialmente responsável", típico do ENEM.
+- Explore a Matriz de Referência do ENEM.
+
+JSON ESPERADO:
+{
+  "tipo_prova": "ENEM",
+  "area": "${params.area}",
+  "tema": "${params.tema}",
+  "questoes": [
+    {
+      "id": 1,
+      "enunciado": "(ENEM Simulado) Texto base... \\n\\n Comando da questão...",
+      "alternativas": { "A": "...", "B": "...", "C": "...", "D": "...", "E": "..." },
+      "alternativa_correta": "A",
+      "explicacao": "**Resolução:** ...\\n\\n💡 **Metáfora:** ...\\n\\n🔎 **Raio-X do ENEM:** (Qual habilidade foi cobrada?)\\n\\n⚠️ **Distratores:** (Cuidado com a alternativa que parece certa mas é extrapolação)",
+      "dificuldade": "${params.nivel}",
+      "pontuacao": 175
+    }
+  ]
+}
+`;
         }
 
         // 2. Call Google Gemini API (Direct)
