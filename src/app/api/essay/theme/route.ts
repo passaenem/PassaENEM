@@ -38,8 +38,18 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("Error generating theme:", error);
+
+        // Handle Quota Exceeded (429)
+        const errorMessage = error.message || error.toString();
+        if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("Too Many Requests")) {
+            return NextResponse.json(
+                { error: "A IA está sobrecarregada no momento (limite de uso atingido). Por favor, aguarde alguns minutos e tente novamente." },
+                { status: 429 }
+            );
+        }
+
         return NextResponse.json(
-            { error: `Failed to generate theme: ${error.message || error}` },
+            { error: `Erro ao gerar tema: ${errorMessage}` },
             { status: 500 }
         );
     }

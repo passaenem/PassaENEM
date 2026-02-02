@@ -13,7 +13,20 @@ export interface EssayResult {
     score_final: number;
     score_breakdown: EssayScore;
     feedback: string;
-    created_at: string;
+    created_at?: string;
+    competency_feedback?: {
+        comprehension: string;
+        structure: string;
+        argumentation: string;
+        cohesion: string;
+        grammar: string;
+    };
+    overall_impression?: string;
+    inline_comments?: Array<{
+        quote: string;
+        comment: string;
+        type: 'error' | 'suggestion' | 'praise';
+    }>;
 }
 
 export interface EssaySubmission {

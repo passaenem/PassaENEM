@@ -34,19 +34,34 @@ export async function POST(req: NextRequest) {
         4. Coesão e coerência (0-200)
         5. Norma padrão (0-200)
         
-        *OBS: O usuário pediu escala 0-20 por critério (Total 100), então adapte a nota para essa escala.*
+        *OBS: O usuário pediu escala 0-20 por critério (Total 100), se for o caso adapte, mas o padrão ENEM é 200 por competência.*
         
         RETORNE APENAS UM JSON (sem markdown) no seguinte formato:
         {
-          "score_final": number (0-100),
+          "score_final": number,
           "score_breakdown": {
-            "comprehension": number (0-20),
-            "structure": number (0-20),
-            "argumentation": number (0-20),
-            "cohesion": number (0-20),
-            "grammar": number (0-20)
+            "comprehension": number,
+            "structure": number,
+            "argumentation": number,
+            "cohesion": number,
+            "grammar": number
           },
-          "feedback_html": "string com HTML básico (<p>, <strong>, <ul>, <li>) contendo: Análise Geral, O que foi bem feito, O que precisa melhorar, Dicas para a próxima."
+          "competency_feedback": {
+            "comprehension": "resumo curto de 1 frase (ex: 'Fugiu tangencialmente do tema')",
+            "structure": "resumo curto de 1 frase",
+            "argumentation": "resumo curto de 1 frase",
+            "cohesion": "resumo curto de 1 frase",
+            "grammar": "resumo curto de 1 frase"
+          },
+          "overall_impression": "string enum: 'Excelente' | 'Bom' | 'Regular' | 'Ruim' | 'Crítico'",
+          "inline_comments": [
+            {
+              "quote": "trecho exato do texto original onde está o erro/melhoria",
+              "comment": "explicação curta do problema",
+              "type": "error" | "suggestion" | "praise"
+            }
+          ],
+          "feedback_html": "string com HTML básico (<p>, <strong>, <ul>, <li>) contendo: Análise Geral detalhada, O que foi bem feito, O que precisa melhorar, Dicas Práticas."
         }
         `;
 
@@ -96,6 +111,16 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("Erro na correção:", error);
-        return NextResponse.json({ error: "Falha ao corrigir redação." }, { status: 500 });
+
+        // Handle Quota Exceeded (429)
+        const errorMessage = error.message || error.toString();
+        if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("Too Many Requests")) {
+            return NextResponse.json(
+                { error: "A IA está sobrecarregada no momento (limite de uso atingido). Por favor, aguarde alguns minutos e tente novamente." },
+                { status: 429 }
+            );
+        }
+
+        return NextResponse.json({ error: `Falha ao corrigir redação: ${errorMessage}` }, { status: 500 });
     }
 }
