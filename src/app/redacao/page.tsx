@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, ArrowRight, Lock, Crown, Star, BookOpen } from "lucide-react";
+import { Loader2, ArrowRight, Lock, Crown, Star, BookOpen, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { EssayResult } from "@/lib/essays";
 import { checkCredits, deductCredits } from "@/lib/credits";
