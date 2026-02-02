@@ -1,9 +1,14 @@
-import React from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function TermosPage() {
     return (
         <div className="min-h-screen bg-slate-950 text-slate-300 p-6 md:p-12 font-sans">
             <div className="max-w-3xl mx-auto space-y-6">
+                <Link href="/" className="inline-flex items-center text-violet-400 hover:text-violet-300 mb-4 transition-colors">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Voltar para o início
+                </Link>
                 <h1 className="text-3xl font-bold text-white mb-8">Termos de Uso</h1>
 
                 <section className="space-y-2">

@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/MobileNav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const isLandingPage = pathname === "/" || pathname === "/login";
+    const isLandingPage = pathname === "/" || pathname === "/login" || pathname === "/termos" || pathname === "/privacidade";
 
     if (isLandingPage) {
         return <main className="min-h-screen w-full">{children}</main>;
