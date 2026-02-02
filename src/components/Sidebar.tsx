@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard, ShieldAlert, Users, PenTool } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard, ShieldAlert, Users, PenTool, MessageSquareHeart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -13,6 +13,7 @@ const navigation = [
     { name: "Desafios", href: "/challenges", icon: Trophy },
     { name: "Redação", href: "/redacao", icon: PenTool },
     { name: "Minhas Redações", href: "/redacao/history", icon: History },
+    { name: "Mural de Feedbacks", href: "/feedbacks", icon: MessageSquareHeart },
     { name: "Comunidade", href: "https://chat.whatsapp.com/EbKOEBYCHvA0OgBbepywny?mode=gi_c", icon: Users },
 ];
 

@@ -66,33 +66,34 @@ export default function HistoryPage() {
             ) : (
                 <div className="grid gap-4">
                     {essays.map((essay) => (
-                        <div key={essay.id} className="p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-violet-500/50 transition-colors flex items-center justify-between group">
-                            <div className="flex-1 min-w-0 mr-4">
-                                <h3 className="font-semibold text-white truncate mb-1">{essay.theme}</h3>
-                                <div className="flex items-center gap-4 text-xs text-slate-500">
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="w-3 h-3" />
-                                        {new Date(essay.created_at).toLocaleDateString()}
-                                    </span>
-                                    <span className="truncate">
-                                        {essay.content.substring(0, 50)}...
-                                    </span>
+                        <Link key={essay.id} href={`/redacao/history/${essay.id}`} className="block">
+                            <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-violet-500/50 transition-colors flex items-center justify-between group">
+                                <div className="flex-1 min-w-0 mr-4">
+                                    <h3 className="font-semibold text-white truncate mb-1">{essay.theme}</h3>
+                                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" />
+                                            {new Date(essay.created_at || new Date()).toLocaleDateString()}
+                                        </span>
+                                        <span className="truncate">
+                                            {essay.content.substring(0, 50)}...
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="flex items-center gap-6">
-                                <div className="text-right">
-                                    <span className={`text-2xl font-bold ${essay.score_final >= 900 ? 'text-green-400' : essay.score_final >= 700 ? 'text-yellow-400' : 'text-red-400'}`}>
-                                        {essay.score_final}
-                                    </span>
-                                    <span className="text-xs text-slate-500 block">pontos</span>
+                                <div className="flex items-center gap-6">
+                                    <div className="text-right">
+                                        <span className={`text-2xl font-bold ${essay.score_final >= 900 ? 'text-green-400' : essay.score_final >= 700 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                            {essay.score_final}
+                                        </span>
+                                        <span className="text-xs text-slate-500 block">pontos</span>
+                                    </div>
+                                    <div className="text-slate-400 group-hover:text-white transition-colors">
+                                        <ChevronRight className="w-5 h-5" />
+                                    </div>
                                 </div>
-                                {/* Ideally link to detailed view: href={`/redacao/${essay.id}`} */}
-                                <Button variant="ghost" size="icon" className="text-slate-400 group-hover:text-white">
-                                    <ChevronRight className="w-5 h-5" />
-                                </Button>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             )}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X, LogIn, LogOut, ShieldAlert, Users, CreditCard } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X, LogIn, LogOut, ShieldAlert, Users, CreditCard, MessageSquareHeart } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ const navigation = [
     { name: "Gerador Concursos", href: "/generator/concurso", icon: Briefcase },
     { name: "Minhas Provas", href: "/history", icon: History },
     { name: "Desafios", href: "/challenges", icon: Trophy },
+    { name: "Mural de Feedbacks", href: "/feedbacks", icon: MessageSquareHeart },
     { name: "Comunidade", href: "https://chat.whatsapp.com/EbKOEBYCHvA0OgBbepywny?mode=gi_c", icon: Users },
 ];
 

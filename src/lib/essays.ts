@@ -12,6 +12,7 @@ export interface EssayResult {
     content: string;
     score_final: number;
     score_breakdown: EssayScore;
+    support_text?: string;
     feedback: string;
     created_at?: string;
     competency_feedback?: {
