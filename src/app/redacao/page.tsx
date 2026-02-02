@@ -140,7 +140,10 @@ function RedacaoPageContent() {
                     score_final: data.score_final,
                     score_breakdown: data.score_breakdown,
                     feedback: data.feedback_html,
-                    support_text: supportingText
+                    support_text: supportingText,
+                    competency_feedback: data.competency_feedback,
+                    overall_impression: data.overall_impression,
+                    inline_comments: data.inline_comments
                 })
                 .select()
                 .single();

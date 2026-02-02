@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const prompt = `Gere um tema de redação no estilo ENEM. 
-        O tema deve ser atual, relevante para a sociedade brasileira e seguir o padrão de frase temática do ENEM (ex: "Os desafios de...", "A importância de...", "Caminhos para combater...").
+        IMPORTANTE: O tema deve ser diferente dos comuns (como persistência da violência, estigmas mentais, etc) e focar em assuntos atuais e relevantes de 2024/2026. Tente buscar algo inédito e instigante.
+        O tema deve seguir o padrão de frase temática do ENEM (ex: "Os desafios de...", "A importância de...", "Caminhos para combater...").
         Além do tema, gere um pequeno texto motivador (texto de apoio) de 1 parágrafo (aprox. 50-80 palavras) dando contexto sobre o assunto, citando algum dado ou fato relevante.
         
         Retorne APENAS um JSON no seguinte formato, sem markdown ou code blocks:
