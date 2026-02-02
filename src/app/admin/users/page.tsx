@@ -56,29 +56,35 @@ export default function AdminUsersPage() {
 
         try {
             const amount = parseInt(creditAmount);
-            const newTotal = (selectedUser.credits || 0) + amount;
 
-            if (supabase) {
-                const { error } = await supabase
-                    .from('profiles')
-                    .update({ credits: newTotal })
-                    .eq('id', selectedUser.id);
+            // SECURITY: Call API instead of direct DB update
+            const response = await fetch('/api/admin/credits', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    targetUserId: selectedUser.id,
+                    amount: amount,
+                    adminUserId: ADMIN_ID
+                })
+            });
 
-                if (error) throw error;
+            const result = await response.json();
 
-                alert(`Sucesso! Adicionado ${amount} créditos para ${selectedUser.full_name || selectedUser.email}.`);
+            if (!response.ok) throw new Error(result.error);
 
-                // Update local state
-                setUsers(prev => prev.map(u =>
-                    u.id === selectedUser.id ? { ...u, credits: newTotal } : u
-                ));
+            alert(`Sucesso! Créditos atualizados.`);
 
-                setIsAddCreditsOpen(false);
-                setCreditAmount("");
-                setSelectedUser(null);
-            }
+            // Update local state
+            setUsers(prev => prev.map(u =>
+                u.id === selectedUser.id ? { ...u, credits: result.newCredits } : u
+            ));
+
+            setIsAddCreditsOpen(false);
+            setCreditAmount("");
+            setSelectedUser(null);
+
         } catch (error: any) {
-            alert("Erro ao adicionar créditos: " + error.message);
+            alert("Erro ao alterar créditos: " + error.message);
         }
     };
 
@@ -175,17 +181,20 @@ export default function AdminUsersPage() {
             {isAddCreditsOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
                     <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-lg shadow-xl p-6 animate-in zoom-in duration-200">
-                        <h2 className="text-xl font-bold text-white mb-2">Adicionar Créditos</h2>
+                        <h2 className="text-xl font-bold text-white mb-2">Gerenciar Créditos</h2>
                         <p className="text-sm text-slate-400 mb-4">
-                            Adicionando para: <span className="text-white font-bold">{selectedUser?.full_name || selectedUser?.email}</span>
+                            Usuário: <span className="text-white font-bold">{selectedUser?.full_name || selectedUser?.email}</span>
+                            <br />
+                            Saldo Atual: <span className="text-violet-400 font-bold">{selectedUser?.credits}</span>
                         </p>
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-bold text-slate-400 uppercase">Quantidade a Adicionar</label>
+                                <label className="text-xs font-bold text-slate-400 uppercase">Quantidade (+ ou -)</label>
+                                <p className="text-[10px] text-slate-500 mb-1">Use números negativos para remover (ex: -10).</p>
                                 <Input
                                     type="number"
-                                    placeholder="Ex: 50"
+                                    placeholder="Ex: 50 ou -10"
                                     className="bg-black/50 border-slate-700 text-white mt-1"
                                     value={creditAmount}
                                     onChange={(e) => setCreditAmount(e.target.value)}

@@ -184,9 +184,9 @@ export default function EnemGeneratorPage() {
             }
 
             // Deduct credits locally (Optimistic Update)
-            if (result.success && userId) {
-                await deductCredits(userId, Number(formData.quantidade));
-            }
+            // if (result.success && userId) {
+            //     await deductCredits(userId, Number(formData.quantidade));
+            // }
 
             // Save to history
 

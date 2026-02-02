@@ -234,6 +234,41 @@ REGRAS FINAIS (CRÍTICAS):
             };
         });
 
+        // 4. Deduct Credits (Server-Side) - NOW WE DEDUCT
+        if (userId) {
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // Service Role
+
+            if (supabaseUrl && supabaseKey) {
+                const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+                const { data: profile } = await supabaseAdmin
+                    .from('profiles')
+                    .select('credits, plan_type')
+                    .eq('id', userId)
+                    .single();
+
+                if (profile) {
+                    const isAdmin = userId === "426d48bb-fc97-4461-acc9-a8a59445b72d" || profile.plan_type === 'admin';
+                    if (!isAdmin) {
+                        // Deduct cost (usually 1 per generation or proportional to quantity)
+                        // Assuming 1 credit per generation request for now, or match existing logic?
+                        // Frontend was deducting "Number(formData.quantidade)" in some places?
+                        // Let's check logic: if prompt generates 5 questions, cost is 5?
+                        // Credits are usually "generations" or "questions"?
+                        // Looking at dashboard: "Credits: 20". A question batch might cost more.
+                        // In lib/credits.ts calling code passed "quantity".
+                        // So we deduct 'quantity'.
+                        const cost = quantity;
+
+                        await supabaseAdmin
+                            .from('profiles')
+                            .update({ credits: Math.max(0, profile.credits - cost) })
+                            .eq('id', userId);
+                    }
+                }
+            }
+        }
+
         return NextResponse.json({ success: true, data: adaptedQuestions });
 
     } catch (error: any) {

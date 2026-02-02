@@ -69,6 +69,11 @@ export default function ExamPage() {
 
                 if (rankedSession) {
                     setStarted(false); // Must explicitly start for RANKED exams (Lockdown)
+                    // SHUFFLE QUESTIONS FOR RANKED
+                    if (parsedQuestions.length > 0) {
+                        const shuffled = shuffleArray([...parsedQuestions]);
+                        setQuestions(shuffled);
+                    }
                 } else {
                     setStarted(true); // Auto-start for NORMAL exams
                 }
@@ -81,6 +86,21 @@ export default function ExamPage() {
 
     // ... (rest of effects) ...
 
+    // ANTI-CHEAT: Utility to shuffle array
+    const shuffleArray = (array: any[]) => {
+        let currentIndex = array.length, randomIndex;
+        // While there remain elements to shuffle.
+        while (currentIndex !== 0) {
+            // Pick a remaining element.
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            // And swap it with the current element.
+            [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    };
+
     // PROCTORING: Listeners
     useEffect(() => {
         if (!started || finished || mode === 'view' || !isRanked) return; // Only active checks if isRanked is true
@@ -92,6 +112,7 @@ export default function ExamPage() {
         };
 
         const handleFullscreenChange = () => {
+            // Only penalize if exiting fullscreen
             if (!document.fullscreenElement) {
                 setIsFullscreen(false);
                 setStrikes(prev => prev + 1);
@@ -106,14 +127,34 @@ export default function ExamPage() {
             return false;
         };
 
+        // NEW: Detect PrintScreen Key
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === 'PrintScreen' || e.code === 'PrintScreen') {
+                alert("Captura de tela detectada! Isso é uma violação.");
+                setStrikes(prev => prev + 1);
+            }
+        };
+
+        // NEW: Detect Mouse Leave (Experimental)
+        const handleMouseLeave = (e: MouseEvent) => {
+            // Only trigger if leaving the top of the window (likely to switch tabs/click other monitor)
+            if (e.clientY <= 0 || e.clientX <= 0 || (e.clientX >= window.innerWidth) || (e.clientY >= window.innerHeight)) {
+                // We rely on visibilityChange mostly, but this can warn user
+                // alert("Cursor fora da área de prova."); // Can be annoying, let's just log or gentle warn
+            }
+        };
+
         document.addEventListener("visibilitychange", handleVisibilityChange);
         document.addEventListener("fullscreenchange", handleFullscreenChange);
         document.addEventListener("contextmenu", handleContextMenu);
+        document.addEventListener("keyup", handleKeyUp);
+        // document.addEventListener("mouseleave", handleMouseLeave); // Too aggressive for now
 
         return () => {
             document.removeEventListener("visibilitychange", handleVisibilityChange);
             document.removeEventListener("fullscreenchange", handleFullscreenChange);
             document.removeEventListener("contextmenu", handleContextMenu);
+            document.removeEventListener("keyup", handleKeyUp);
         };
     }, [started, finished, mode, isRanked]);
 
@@ -313,6 +354,14 @@ export default function ExamPage() {
             const storedTitle = sessionStorage.getItem('currentExamTitle');
             const finalTitle = storedTitle || (questions[0]?.type ? `${questions[0].type} Exam` : "Simulado");
 
+            // Calculate Time Taken
+            const storedDuration = sessionStorage.getItem('currentExamDuration');
+            let timeTaken = 0;
+            if (storedDuration && timeLeft !== null) {
+                const totalSeconds = parseInt(storedDuration) * 60;
+                timeTaken = totalSeconds - timeLeft;
+            }
+
             const { error } = await supabase.from('exam_results').insert({
                 user_id: user.id,
                 exam_title: finalTitle,
@@ -324,6 +373,9 @@ export default function ExamPage() {
                 answers_json: finalAnswers,
                 questions_json: questions,
                 pdf_url: pdfUrl,
+                // NEW COLUMNS
+                time_taken_seconds: timeTaken,
+                cheat_events: strikes
             });
 
             if (error) throw error;

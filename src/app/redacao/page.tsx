@@ -128,7 +128,8 @@ function RedacaoPageContent() {
                 throw new Error(data.error || "Erro na correção.");
             }
 
-            await deductCredits(user.id, 1);
+            // Deduct credits is now handled server-side in the API
+            // await deductCredits(user.id, 1);
 
             // Save to Supabase with support_text
             const { data: savedEssay, error: saveError } = await supabase

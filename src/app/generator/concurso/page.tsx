@@ -92,9 +92,9 @@ export default function ConcursoGeneratorPage() {
             }
 
             // Deduct credits locally (Optimistic)
-            if (result.success && userId) {
-                await deductCredits(userId, Number(formData.quantidade));
-            }
+            // if (result.success && userId) {
+            //     await deductCredits(userId, Number(formData.quantidade));
+            // }
 
             // Save to history
             const newId = Math.random().toString(36).substr(2, 9);
