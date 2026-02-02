@@ -7,10 +7,11 @@ interface EssayFeedbackDisplayProps {
     result: EssayResult;
     onRedo?: () => void;
     onNew?: () => void;
+    onBack?: () => void; // Optional back handler
     readOnly?: boolean; // If true, hide action buttons
 }
 
-export function EssayFeedbackDisplay({ result, onRedo, onNew, readOnly }: EssayFeedbackDisplayProps) {
+export function EssayFeedbackDisplay({ result, onRedo, onNew, onBack, readOnly }: EssayFeedbackDisplayProps) {
     const router = useRouter();
 
     return (
@@ -126,7 +127,13 @@ export function EssayFeedbackDisplay({ result, onRedo, onNew, readOnly }: EssayF
 
             {/* 5. CTAs (Action Buttons) */}
             {!readOnly && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                    {onBack && (
+                        <Button variant="outline" className="h-14 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" onClick={onBack}>
+                            <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+                            Voltar
+                        </Button>
+                    )}
                     <Button variant="outline" className="h-14 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" onClick={onRedo}>
                         <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
                         Refazer Esta Redação
@@ -139,7 +146,13 @@ export function EssayFeedbackDisplay({ result, onRedo, onNew, readOnly }: EssayF
             )}
 
             {readOnly && (
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-4 gap-4">
+                    {onBack && (
+                        <Button variant="outline" className="h-12 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" onClick={onBack}>
+                            <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+                            Voltar
+                        </Button>
+                    )}
                     {/* Logic for "Redo" will be handled by the parent component passing onRedo */}
                     <Button variant="default" className="bg-violet-600 hover:bg-violet-700 h-12" onClick={onRedo}>
                         <ArrowRight className="w-4 h-4 mr-2 rotate-180" />

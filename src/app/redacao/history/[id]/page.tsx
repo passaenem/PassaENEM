@@ -84,6 +84,7 @@ export default function EssayDetailPage() {
                 result={essay}
                 readOnly={true}
                 onRedo={handleRedo}
+                onBack={() => router.push('/redacao/history')}
             />
         </div>
     );

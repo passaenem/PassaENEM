@@ -235,6 +235,7 @@ function RedacaoPageContent() {
             {result ? (
                 <EssayFeedbackDisplay
                     result={result}
+                    onBack={() => setResult(null)}
                     onRedo={() => setResult(null)}
                     onNew={() => {
                         setTheme("");
