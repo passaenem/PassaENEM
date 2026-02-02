@@ -16,6 +16,11 @@ export default function FeedbacksPage() {
 
     const fetchFeedbacks = async () => {
         setLoading(true);
+        if (!supabase) {
+            setLoading(false);
+            return;
+        }
+
         // 1. Fetch Feedbacks
         const { data: feedbackData, error } = await supabase
             .from('feedbacks')
@@ -67,7 +72,7 @@ export default function FeedbacksPage() {
     }, []);
 
     const handleReply = async (id: string, response: string) => {
-        if (!currentUser || currentUser.id !== ADMIN_ID) return;
+        if (!supabase || !currentUser || currentUser.id !== ADMIN_ID) return;
 
         const { error } = await supabase
             .from('feedbacks')

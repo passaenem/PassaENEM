@@ -19,6 +19,7 @@ export function FeedbackForm({ onSuccess, userId }: FeedbackFormProps) {
 
     const handleSubmit = async () => {
         if (rating === 0 || !comment.trim()) return;
+        if (!supabase) return;
 
         setLoading(true);
         try {
@@ -75,8 +76,8 @@ export function FeedbackForm({ onSuccess, userId }: FeedbackFormProps) {
                                 >
                                     <Star
                                         className={`w-8 h-8 transition-colors ${star <= (hoverRating || rating)
-                                                ? "text-yellow-400 fill-yellow-400"
-                                                : "text-slate-700"
+                                            ? "text-yellow-400 fill-yellow-400"
+                                            : "text-slate-700"
                                             }`}
                                     />
                                 </button>
