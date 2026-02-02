@@ -1,19 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calendar, Clock, BookOpen, ChevronRight, ChevronLeft, CheckCircle2, Save } from 'lucide-react';
+import { Loader2, Calendar, Clock, BookOpen, ChevronRight, ChevronLeft, CheckCircle2, Save, Lightbulb, Target, Brain, CheckSquare, Zap, ArrowRight, LayoutList } from 'lucide-react';
 
 interface ScheduleBlock {
     subject: string;
     topic: string;
-    details: string;
+    objective?: string;
+    metaphor?: string;
+    method?: string;
+    details?: string; // Fallback
     duration: string;
+    completed?: boolean;
 }
 
 interface DaySchedule {
@@ -36,7 +41,10 @@ const STEPS = [
 export default function SchedulePage() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const [credits, setCredits] = useState(0);
     const [generatedSchedule, setGeneratedSchedule] = useState<ScheduleResponse | null>(null);
+    const [selectedWeek, setSelectedWeek] = useState(1);
 
     const [formData, setFormData] = useState({
         objective: '',
@@ -48,6 +56,20 @@ export default function SchedulePage() {
         strengths: [] as string[],
         level: ''
     });
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            if (supabase) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    setUser(user);
+                    const { data: profile } = await supabase.from('profiles').select('credits').eq('id', user.id).single();
+                    if (profile) setCredits(profile.credits);
+                }
+            }
+        };
+        fetchUser();
+    }, []);
 
     const handleNext = () => setStep(prev => Math.min(prev + 1, STEPS.length + 1));
     const handleBack = () => setStep(prev => Math.max(prev - 1, 1));
@@ -62,17 +84,24 @@ export default function SchedulePage() {
         });
     };
 
-    const generateSchedule = async () => {
+    const generateSchedule = async (week: number = 1) => {
+        if (!user) return alert("Você precisa estar logado.");
         setLoading(true);
+        setSelectedWeek(week);
+
         try {
             const res = await fetch('/api/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ ...formData, userId: user.id, week })
             });
             const data = await res.json();
+
             if (data.success) {
                 setGeneratedSchedule(data.data);
+                // Refresh credits
+                const { data: profile } = await supabase!.from('profiles').select('credits').eq('id', user.id).single();
+                if (profile) setCredits(profile.credits);
             } else {
                 alert("Erro ao gerar cronograma: " + data.error);
             }
@@ -84,66 +113,141 @@ export default function SchedulePage() {
         }
     };
 
+    const toggleBlockCompletion = (dayIndex: number, blockIndex: number) => {
+        if (!generatedSchedule) return;
+        const newSchedule = { ...generatedSchedule };
+        const block = newSchedule.schedule[dayIndex].blocks[blockIndex];
+        block.completed = !block.completed;
+        setGeneratedSchedule(newSchedule);
+    };
+
     const subjects = ["Matemática", "Linguagens", "Ciências Humanas", "Ciências da Natureza", "Redação"];
 
     if (generatedSchedule) {
         return (
-            <div className="p-8 max-w-6xl mx-auto space-y-8 animate-fade-in-up">
-                <div className="flex justify-between items-center">
+            <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-fade-in-up">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-                            Seu Plano de Estudos
-                        </h1>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                                Plano de Estudos
+                            </h1>
+                            <Badge variant="outline" className="border-blue-500 text-blue-400">
+                                Semana {selectedWeek}
+                            </Badge>
+                        </div>
                         <p className="text-slate-400 mt-2">Personalizado por IA para o seu objetivo.</p>
                     </div>
-                    <Button onClick={() => setGeneratedSchedule(null)} variant="outline">
-                        Criar Novo
-                    </Button>
+
+                    <div className="flex gap-2">
+                        <Button onClick={() => setGeneratedSchedule(null)} variant="outline">
+                            <LayoutList className="w-4 h-4 mr-2" />
+                            Novo Perfil
+                        </Button>
+                        <Button
+                            disabled={loading || credits < 3}
+                            onClick={() => generateSchedule(selectedWeek + 1)}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                <>
+                                    Gerar Semana {selectedWeek + 1}
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 </div>
 
                 <Card className="bg-slate-900 border-slate-800">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-yellow-400">
-                            <BookOpen className="w-5 h-5" />
+                            <Brain className="w-5 h-5" />
                             Dicas do Mentor
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-slate-300 leading-relaxed">{generatedSchedule.summary}</p>
+                        <p className="text-slate-300 leading-relaxed italic border-l-4 border-yellow-500/50 pl-4">
+                            "{generatedSchedule.summary}"
+                        </p>
                     </CardContent>
                 </Card>
 
                 <div className="grid gap-6">
-                    {generatedSchedule.schedule.map((day, idx) => (
-                        <Card key={idx} className="bg-slate-950/50 border-slate-800 overflow-hidden">
-                            <div className="bg-slate-800/50 p-3 px-6 font-semibold text-blue-400 flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                {day.day}
+                    {generatedSchedule.schedule.map((day, dIdx) => (
+                        <Card key={dIdx} className="bg-slate-950/50 border-slate-800 overflow-hidden">
+                            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-3 px-6 border-b border-slate-800 flex justify-between items-center">
+                                <div className="font-bold text-blue-400 flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    {day.day}
+                                </div>
+                                <span className="text-xs text-slate-500">{day.blocks.length} Tarefas</span>
                             </div>
-                            <div className="p-0">
+
+                            <div className="divide-y divide-slate-800/50">
                                 {day.blocks.length > 0 ? (
-                                    <div className="divide-y divide-slate-800">
-                                        {day.blocks.map((block, bIdx) => (
-                                            <div key={bIdx} className="p-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-slate-900/50 transition-colors">
-                                                <div className="md:w-32 shrink-0">
-                                                    <Badge variant="outline" className="mb-1 border-slate-700 text-slate-300">
-                                                        {block.subject}
-                                                    </Badge>
-                                                    <div className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                                                        <Clock className="w-3 h-3" />
-                                                        {block.duration}
+                                    day.blocks.map((block, bIdx) => (
+                                        <div key={bIdx} className={`p-4 transition-all ${block.completed ? 'opacity-50 grayscale bg-slate-900/30' : 'hover:bg-slate-900/20'}`}>
+                                            <div className="flex gap-4">
+                                                {/* Checkbox Column */}
+                                                <div className="pt-1">
+                                                    <button
+                                                        onClick={() => toggleBlockCompletion(dIdx, bIdx)}
+                                                        className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${block.completed ? 'bg-green-500 border-green-500 text-slate-900' : 'border-slate-600 hover:border-blue-500'}`}
+                                                    >
+                                                        {block.completed && <CheckSquare className="w-4 h-4" />}
+                                                    </button>
+                                                </div>
+
+                                                {/* Content Column */}
+                                                <div className="flex-1 space-y-3">
+                                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="outline" className="border-slate-700 text-slate-300">
+                                                                {block.subject}
+                                                            </Badge>
+                                                            <h4 className={`font-semibold text-white ${block.completed ? 'line-through decoration-slate-500' : ''}`}>
+                                                                {block.topic}
+                                                            </h4>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-900 px-2 py-1 rounded">
+                                                            <Clock className="w-3 h-3" />
+                                                            {block.duration}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Rich Pedagogical Content */}
+                                                    <div className="grid gap-2 text-sm bg-slate-900/50 p-3 rounded-lg border border-slate-800/50">
+                                                        {block.objective && (
+                                                            <div className="flex gap-2">
+                                                                <Target className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                                                                <span className="text-slate-300"><strong className="text-red-400">Objetivo:</strong> {block.objective}</span>
+                                                            </div>
+                                                        )}
+                                                        {block.method && (
+                                                            <div className="flex gap-2">
+                                                                <BookOpen className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                                                                <span className="text-slate-300"><strong className="text-blue-400">Como estudar:</strong> {block.method}</span>
+                                                            </div>
+                                                        )}
+                                                        {block.metaphor && (
+                                                            <div className="flex gap-2">
+                                                                <Lightbulb className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
+                                                                <span className="text-slate-300"><strong className="text-yellow-400">Pense assim:</strong> {block.metaphor}</span>
+                                                            </div>
+                                                        )}
+                                                        {!block.objective && block.details && ( // Fallback
+                                                            <p className="text-slate-400">{block.details}</p>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <h4 className="text-white font-medium">{block.topic}</h4>
-                                                    <p className="text-sm text-slate-400 mt-1">{block.details}</p>
-                                                </div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))
                                 ) : (
-                                    <div className="p-6 text-center text-slate-500 italic">
-                                        Dia livre / Descanso
+                                    <div className="p-8 text-center text-slate-600 italic flex flex-col items-center">
+                                        <Zap className="w-8 h-8 mb-2 opacity-50" />
+                                        Dia livre para descanso ou reposição.
                                     </div>
                                 )}
                             </div>
@@ -318,18 +422,24 @@ export default function SchedulePage() {
                             <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>
                     ) : (
-                        <Button
-                            onClick={generateSchedule}
-                            disabled={loading}
-                            className="bg-green-600 hover:bg-green-700 w-32"
-                        >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                                <>
-                                    Gerar Plano
-                                    <CheckCircle2 className="w-4 h-4 ml-2" />
-                                </>
-                            )}
-                        </Button>
+                        <div className="flex flex-col items-end gap-2">
+                            <Button
+                                onClick={() => generateSchedule(1)}
+                                disabled={loading || credits < 3}
+                                className="bg-green-600 hover:bg-green-700 w-40"
+                            >
+                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                    <>
+                                        Gerar Plano
+                                        <CheckCircle2 className="w-4 h-4 ml-2" />
+                                    </>
+                                )}
+                            </Button>
+                            <span className="text-xs text-slate-400 flex items-center gap-1">
+                                <Zap className="w-3 h-3 text-yellow-500" />
+                                Custo: 3 Créditos (Saldo: {credits})
+                            </span>
+                        </div>
                     )}
                 </CardFooter>
             </Card>
