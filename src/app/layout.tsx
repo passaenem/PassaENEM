@@ -7,7 +7,15 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Passa Enem - Aprovado com IA",
-  description: "Plataforma de estudos inteligentes para ENEM e Concursos",
+  description: "A única plataforma onde você estuda para o ENEM com IA e ganha dinheiro. Simulados, Redação e Ranking Premiado.",
+  openGraph: {
+    title: "Passa Enem - Estude e Ganhe",
+    description: "Estude para o ENEM e Concursos com Inteligência Artificial e ganhe prêmios em dinheiro nos desafios semanais.",
+    url: "https://passaenem.com",
+    siteName: "Passa Enem",
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 import { MobileNav } from "@/components/MobileNav";

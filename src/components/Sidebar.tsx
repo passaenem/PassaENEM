@@ -15,6 +15,7 @@ const navigation = [
     { name: "Minhas Redações", href: "/redacao/history", icon: History },
     { name: "Mural de Feedbacks", href: "/feedbacks", icon: MessageSquareHeart },
     { name: "Comunidade", href: "https://chat.whatsapp.com/EbKOEBYCHvA0OgBbepywny?mode=gi_c", icon: Users },
+    { name: "Configurações", href: "/configuracoes", icon: Settings },
 ];
 
 const ADMIN_ID = "426d48bb-fc97-4461-acc9-a8a59445b72d";

@@ -415,8 +415,15 @@ export default function LandingPage() {
             </section>
 
             {/* Footer */}
-            <footer className="py-8 border-t border-slate-800 text-center text-slate-500 text-sm">
-                <p>&copy; 2024 Passa Enem. Todos os direitos reservados.</p>
+            <footer className="py-8 border-t border-slate-800 bg-slate-950">
+                <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+                    <p>&copy; 2026 Passa Enem. Todos os direitos reservados.</p>
+                    <div className="flex gap-6">
+                        <Link href="/termos" className="hover:text-white transition-colors">Termos de Uso</Link>
+                        <Link href="/privacidade" className="hover:text-white transition-colors">Privacidade</Link>
+                        <a href="mailto:passaenem12@gmail.com" className="hover:text-white transition-colors">Suporte</a>
+                    </div>
+                </div>
             </footer>
         </div >
     );
