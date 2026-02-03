@@ -64,6 +64,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://passaprovas.com",
   },
+  verification: {
+    google: "kIsWqEy0OUaeV3NHUq466gS3zzWMhwdVdZHfwHIykVU",
+  },
   category: 'education',
 };
 
