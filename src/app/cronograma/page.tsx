@@ -140,28 +140,28 @@ export default function SchedulePage() {
     if (generatedSchedule) {
         return (
             <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-fade-in-up">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
                                 Plano de Estudos
                             </h1>
-                            <Badge variant="outline" className="border-blue-500 text-blue-400">
+                            <Badge variant="outline" className="border-blue-500 text-blue-400 w-fit">
                                 Semana {selectedWeek}
                             </Badge>
                         </div>
-                        <p className="text-slate-400 mt-2">Personalizado por IA para o seu objetivo.</p>
+                        <p className="text-slate-400 mt-2 text-sm md:text-base">Personalizado por IA para o seu objetivo.</p>
                     </div>
 
-                    <div className="flex gap-2">
-                        <Button onClick={() => setGeneratedSchedule(null)} variant="outline">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                        <Button onClick={() => setGeneratedSchedule(null)} variant="outline" className="w-full sm:w-auto">
                             <LayoutList className="w-4 h-4 mr-2" />
                             Novo Perfil
                         </Button>
                         <Button
                             disabled={loading || credits < 3}
                             onClick={() => generateSchedule(selectedWeek + 1)}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                                 <>
@@ -420,27 +420,28 @@ export default function SchedulePage() {
                     )}
                 </CardContent>
 
-                <CardFooter className="flex justify-between border-t border-slate-800 pt-6">
+                <CardFooter className="flex flex-col-reverse sm:flex-row justify-between gap-4 border-t border-slate-800 pt-6">
                     <Button
                         variant="ghost"
                         onClick={handleBack}
                         disabled={step === 1 || loading}
+                        className="w-full sm:w-auto"
                     >
                         <ChevronLeft className="w-4 h-4 mr-2" />
                         Voltar
                     </Button>
 
                     {step < 4 ? (
-                        <Button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700">
+                        <Button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
                             Próximo
                             <ChevronRight className="w-4 h-4 ml-2" />
                         </Button>
                     ) : (
-                        <div className="flex flex-col items-end gap-2">
+                        <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
                             <Button
                                 onClick={() => generateSchedule(1)}
                                 disabled={loading || credits < 3}
-                                className="bg-green-600 hover:bg-green-700 w-40"
+                                className="bg-green-600 hover:bg-green-700 w-full sm:w-40"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                                     <>
@@ -449,7 +450,7 @@ export default function SchedulePage() {
                                     </>
                                 )}
                             </Button>
-                            <span className="text-xs text-slate-400 flex items-center gap-1">
+                            <span className="text-xs text-slate-400 flex items-center gap-1 self-center sm:self-end">
                                 <Zap className="w-3 h-3 text-yellow-500" />
                                 Custo: 3 Créditos (Saldo: {credits})
                             </span>
