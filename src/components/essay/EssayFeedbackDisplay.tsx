@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EssayResult } from "@/lib/essays";
 import { CheckCircle, AlertTriangle, Star, BookOpen, ArrowRight } from "lucide-react";
@@ -204,6 +207,8 @@ function ScoreCard({ title, score, icon: Icon, description, feedback }: any) {
 }
 
 function EssayTextWithHighlights({ content, comments }: { content: string, comments: any[] }) {
+    const [hovered, setHovered] = useState<{ x: number, bottom: number, comment: any } | null>(null);
+
     if (!comments || comments.length === 0) return <div className="whitespace-pre-wrap">{content}</div>;
 
     let parts: { text: string, comment?: any }[] = [{ text: content }];
@@ -238,22 +243,50 @@ function EssayTextWithHighlights({ content, comments }: { content: string, comme
         parts = newParts;
     });
 
+    const handleMouseEnter = (e: React.MouseEvent, cmt: any) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const tooltipWidth = 260; // Approximate width w-64 + padding
+
+        let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+
+        // Screen boundaries
+        if (left < 10) left = 10;
+        if (left + tooltipWidth > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipWidth - 10;
+        }
+
+        // Position above: Viewport Height - Top of element + spacing
+        const bottom = window.innerHeight - rect.top + 8;
+
+        setHovered({ x: left, bottom, comment: cmt });
+    };
+
     return (
-        <div className="whitespace-pre-wrap">
+        <div className="whitespace-pre-wrap relative">
             {parts.map((part, i) => (
                 part.comment ? (
-                    <span key={i} className="relative group cursor-help decoration-red-500/50 underline decoration-wavy decoration-2 underline-offset-4 bg-red-500/10 rounded px-0.5 mx-0.5">
+                    <span
+                        key={i}
+                        className="cursor-help decoration-red-500/50 underline decoration-wavy decoration-2 underline-offset-4 bg-red-500/10 rounded px-0.5 mx-0.5 hover:bg-red-500/20 transition-colors"
+                        onMouseEnter={(e) => handleMouseEnter(e, part.comment)}
+                        onMouseLeave={() => setHovered(null)}
+                    >
                         {part.text}
-                        <span className="absolute hidden group-hover:block z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-950 border border-slate-700 rounded-lg shadow-2xl text-xs sm:text-sm text-slate-200 pointer-events-none">
-                            <strong>{part.comment.type === 'error' ? '🔴 Correção:' : '💡 Sugestão:'}</strong><br />
-                            {part.comment.comment}
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-700" />
-                        </span>
                     </span>
                 ) : (
                     <span key={i}>{part.text}</span>
                 )
             ))}
+
+            {hovered && (
+                <div
+                    className="fixed z-[9999] w-64 p-3 bg-slate-950 border border-slate-700 rounded-lg shadow-2xl text-xs sm:text-sm text-slate-200 pointer-events-none animate-in fade-in zoom-in-95 duration-150"
+                    style={{ left: hovered.x, bottom: hovered.bottom }}
+                >
+                    <strong>{hovered.comment.type === 'error' ? '🔴 Correção:' : '💡 Sugestão:'}</strong><br />
+                    {hovered.comment.comment}
+                </div>
+            )}
         </div>
     );
 }
