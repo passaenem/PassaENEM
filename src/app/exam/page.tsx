@@ -603,53 +603,66 @@ export default function ExamPage() {
                     {finished && !isRanked && (
                         currentQuestion.explanation && typeof currentQuestion.explanation === 'object' ? (
                             <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                                {/* 1. HEADER: Resultado (Visual) */}
+                                {/* 1. HEADER: ONDE VOCÊ ERROU / ACERTOU */}
                                 {answers[currentQuestion.id] === currentQuestion.correctAnswer ? (
-                                    <div className="p-3 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center gap-2 text-green-400 font-bold">
-                                        <CheckCircle className="w-5 h-5" />
-                                        Você acertou! Parabéns.
+                                    <div className="p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
+                                        <div className="flex items-center gap-2 text-green-400 font-bold mb-1">
+                                            <CheckCircle className="w-5 h-5" />
+                                            Você acertou!
+                                        </div>
+                                        {/* @ts-ignore */}
+                                        <p className="text-slate-300 text-sm">{currentQuestion.explanation.analise_erro || "Ótima resposta! Você dominou o conceito."}</p>
                                     </div>
                                 ) : (
-                                    <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-400 font-bold">
-                                        <ShieldAlert className="w-5 h-5" />
+                                    <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
+                                        <div className="flex items-center gap-2 text-red-400 font-bold mb-1">
+                                            <ShieldAlert className="w-5 h-5" />
+                                            ❌ Onde você errou
+                                        </div>
                                         {/* @ts-ignore */}
-                                        {currentQuestion.explanation.analise_erro || "Você cometeu um deslize. Veja o motivo abaixo."}
+                                        <p className="text-slate-300 text-sm font-medium leading-relaxed">
+                                            {/* @ts-ignore */}
+                                            {currentQuestion.explanation.analise_erro || "Você cometeu um deslize. Veja o motivo abaixo."}
+                                        </p>
                                     </div>
                                 )}
 
-                                {/* 2. METÁFORA (DESTAQUE) */}
+                                {/* 2. METÁFORA (DESTAQUE - O QUE FIXA NA CABEÇA) */}
                                 {/* @ts-ignore */}
                                 {currentQuestion.explanation.metafora && (
-                                    <div className="p-4 bg-yellow-950/30 border-l-4 border-yellow-500 rounded-r-lg">
-                                        <h4 className="flex items-center gap-2 text-yellow-500 font-bold mb-1 uppercase text-xs tracking-wider">
-                                            <Lightbulb className="w-4 h-4" />
-                                            Para não esquecer (Metáfora)
+                                    <div className="relative p-5 bg-yellow-950/20 border border-yellow-500/30 rounded-xl overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <Lightbulb className="w-24 h-24 text-yellow-500" />
+                                        </div>
+                                        <h4 className="flex items-center gap-2 text-yellow-400 font-bold mb-2 uppercase text-xs tracking-wider z-10 relative">
+                                            <div className="p-1 bg-yellow-500/20 rounded">🧠</div>
+                                            Metáfora para memorizar
                                         </h4>
-                                        <p className="text-yellow-100 italic text-lg leading-relaxed">
+                                        <p className="text-yellow-100/90 text-lg font-serif italic leading-relaxed z-10 relative pl-2 border-l-2 border-yellow-500/50">
                                             "{/* @ts-ignore */}{currentQuestion.explanation.metafora}"
                                         </p>
                                     </div>
                                 )}
 
-                                {/* 3. GABARITO DETALHADO */}
-                                <div className="p-4 bg-slate-950 rounded-lg border border-slate-800">
-                                    <h4 className="flex items-center gap-2 text-slate-300 font-bold mb-3 uppercase text-xs tracking-wider">
-                                        <BookOpen className="w-4 h-4 text-blue-400" />
-                                        Análise Técnica
+                                {/* 3. GABARITO DETALHADO (RESPOSTA CORRETA) */}
+                                <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-800">
+                                    <h4 className="flex items-center gap-2 text-green-400 font-bold mb-3 uppercase text-xs tracking-wider">
+                                        <div className="p-1 bg-green-500/10 rounded">✅</div>
+                                        Resposta correta ({String.fromCharCode(65 + currentQuestion.correctAnswer)})
                                     </h4>
-                                    <ul className="space-y-2">
+                                    <ul className="space-y-3">
                                         {/* @ts-ignore */}
                                         {Array.isArray(currentQuestion.explanation.gabarito_detalhado) ? (
                                             /* @ts-ignore */
                                             currentQuestion.explanation.gabarito_detalhado.map((point: string, i: number) => (
-                                                <li key={i} className="flex gap-2 text-slate-300">
-                                                    <span className="text-blue-500 mt-1">•</span>
+                                                <li key={i} className="flex gap-3 text-slate-300 text-sm leading-relaxed">
+                                                    <span className="text-green-500 mt-1.5 h-1.5 w-1.5 rounded-full bg-green-500 shrink-0 block"></span>
                                                     <span>{point}</span>
                                                 </li>
                                             ))
                                         ) : (
                                             /* @ts-ignore */
-                                            <p className="text-slate-300">{currentQuestion.explanation.gabarito_detalhado}</p>
+                                            <p className="text-slate-300 text-sm">{currentQuestion.explanation.gabarito_detalhado}</p>
                                         )}
                                     </ul>
                                 </div>

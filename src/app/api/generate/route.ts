@@ -64,44 +64,34 @@ DIRETRIZES OBRIGATÓRIAS:
 - Se possível, adapte questões clássicas para garantir fidelidade ao estilo de cobrança.
 - Priorize os temas "queridinhos" da banca (aqueles que sempre caem).
 - O enunciado deve ser rico e contextualizado, idêntico ao da prova real.
-
-2. EXPLICAÇÃO PEDAGÓGICA (SUPER DETALHADA)
-Para cada questão, a explicação DEVE ser uma mini-aula contendo:
-a) [Conceito]: Explicação técnica profunda, mas acessível.
-b) [Por que a resposta é X?]: Analise a alternativa correta.
-c) [Por que não as outras?]: Explique brevemente o erro das incorretas.
-d) [Metáfora]: UMA metáfora simples do cotidiano para fixar.
-e) [Estratégia de Prova]: Como "matar" essa questão rapidamente.
-
-3. USO DE METÁFORAS
-- Claras, curtas e cotidianas (ex: "Pense na MITOCÔNDRIA como uma USINA DE FORÇA").
-- Nunca substituir o conceito técnico, apenas ilustrar.
-
-4. TOM E POSTURA
-- Você é um professor mentor experiente.
-- Foco total em aprovação.
-
-5. FORMATO DE SAÍDA
-Retorne APENAS um JSON válido.
 `;
+
+        const explanationRules = `
+        // 2. EXPLICAÇÃO PEDAGÓGICA (ULTRA-CONCISA E VISUAL)
+        REGRA DE OURO: SEJA DIRETO. Use frases curtas (max 15 palavras). Use tópicos.
+        
+        ESTRUTURA DA EXPLICAÇÃO (JSON):
+        a) "analise_erro": Se o aluno errou, qual foi o raciocínio errado dele? (Ex: "Você confundiu Mitocôndria com Cloroplasto"). Seja empático mas direto.
+        b) "gabarito_detalhado": LISTA de 3 a 4 pontos curtos explicando a correta. (Ex: ["Produz ATP", "Respiração Celular", "Usa Glicose"]).
+        c) "metafora": A MELHOR parte. Uma analogia simples e visual. (Ex: "Mitocôndria = Usina de Energia").
+        d) "por_que_nao_outras": Explique em 1 linha por que cada distrator está errado.
+        e) "enem_contexto": Qual habilidade ou padrão da banca isso segue?
+        f) "dica_revisao": Uma frase "imediata" para lembrar na prova.
+        
+        FORMATO DE SAÍDA: JSON APENAS.
+        `;
 
         if (type === 'CONCURSO') {
             finalPrompt = `
 ${commonRules}
+${explanationRules}
 
-CONTEXTO ESPECÍFICO (CONCURSO REAL):
+CONTEXTO: CONCURSO PÚBLICO
 - Área: ${params.area || "Geral"}
-- Subárea / Cargo: ${params.cargo || "Não especificado"}
+- Cargo: ${params.cargo || "Não especificado"}
 - Banca: ${params.banca || "Genérica"}
 - Disciplina: ${params.disciplina || "Conhecimentos Gerais"}
 - Nível: ${params.nivel || "Médio"}
-- Quantidade: ${quantity}
-
-MEMÓRIA DA BANCA (${params.banca || "Genérica"}):
-- Busque na sua base de conhecimento o estilo exato desta banca.
-- Se for CEBRASPE: Crie questões de "Certo/Errado" adaptadas para 5 alternativas ou Múltipla Escolha difícil.
-- Se for FGV: Use textos longos e casos práticos exaustivos.
-- Se for VUNESP: Seja direto, cobrando lei seca ou gramática normativa.
 
 JSON ESPERADO:
 {
@@ -111,16 +101,16 @@ JSON ESPERADO:
   "questoes": [
     {
       "id": 1,
-      "enunciado": "Texto da questão (Estilo Banca Real)...",
+      "enunciado": "Texto da questão...",
       "alternativas": { "A": "...", "B": "...", "C": "...", "D": "...", "E": "..." },
       "alternativa_correta": "A",
       "explicacao": {
-        "analise_erro": "Você confundiu X com Y...",
-        "gabarito_detalhado": ["Ponto 1...", "Ponto 2..."],
-        "metafora": "Imagine que...",
-        "por_que_nao_outras": "B: Errada por... \\n C: Errada por...",
-        "enem_contexto": "Estratégia da Banca X...",
-        "dica_revisao": "Para concursos, foque na lei seca..."
+        "analise_erro": "Você provavelmente pensou que...",
+        "gabarito_detalhado": ["Ponto chave 1", "Ponto chave 2", "Conclusão"],
+        "metafora": "Imagine uma ESTRADA ESBURACADA...",
+        "por_que_nao_outras": "B: Errada pois fala de X.\\nC: Errada pois o prazo é Y.",
+        "enem_contexto": "A banca FGV ama cobrar exceções desta lei.",
+        "dica_revisao": "Prazo de 5 dias = Recurso Administrativo."
       },
       "dificuldade": "${params.nivel}",
       "pontuacao": 175
@@ -132,18 +122,15 @@ JSON ESPERADO:
             // ENEM / GERAL Logic
             finalPrompt = `
 ${commonRules}
+${explanationRules}
 
-CONTEXTO ESPECÍFICO (ENEM / VESTIBULAR):
+CONTEXTO: ENEM / VESTIBULAR
 - Área: ${params.area || "Geral"}
-- Disciplina/Tema: ${params.tema || params.disciplina || "Geral"}
+- Tema: ${params.tema || params.disciplina || "Geral"}
 - Nível: ${params.nivel || "Médio"}
-- Quantidade: ${quantity}
 
-MEMÓRIA DO ENEM (2018-2024):
-- Simule questões que poderiam estar na prova oficial.
-- Contextualização OBRIGATÓRIA (Use textos base, gráficos descritos ou situações-problema).
-- A correta deve ser a "mais completa" ou "socialmente responsável", típico do ENEM.
-- Explore a Matriz de Referência do ENEM.
+MEMÓRIA DO ENEM:
+- Questões interpretativas e contextualizadas.
 
 JSON ESPERADO:
 {
@@ -153,16 +140,16 @@ JSON ESPERADO:
   "questoes": [
     {
       "id": 1,
-      "enunciado": "(ENEM Simulado) Texto base... \\n\\n Comando da questão...",
+      "enunciado": "Texto base... Comando...",
       "alternativas": { "A": "...", "B": "...", "C": "...", "D": "...", "E": "..." },
       "alternativa_correta": "A",
       "explicacao": {
-        "analise_erro": "Se marcou B, cuidado com...",
-        "gabarito_detalhado": ["A resposta segue a lógica Y...", "O texto base indica..."],
-        "metafora": "Pense na MITOCÔNDRIA como uma USINA...",
-        "por_que_nao_outras": "B: Errada porque... \\n C: Errada porque...",
-        "enem_contexto": "Habilidade H12...",
-        "dica_revisao": "Associe sempre Energia com Mitocôndria."
+        "analise_erro": "Você confundiu o conceito X com Y.",
+        "gabarito_detalhado": ["O texto afirma que...", "A ciência explica que...", "Logo, a correta é A."],
+        "metafora": "A célula é como uma FÁBRICA...",
+        "por_que_nao_outras": "B: Errada porque contradiz o texto.\\nC: Errada pois é o oposto.",
+        "enem_contexto": "Habilidade H12: Relacionar conceitos...",
+        "dica_revisao": "Energia = Mitocôndria."
       },
       "dificuldade": "${params.nivel}",
       "pontuacao": 175
