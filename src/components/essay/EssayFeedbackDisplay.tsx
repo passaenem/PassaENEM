@@ -97,8 +97,8 @@ export function EssayFeedbackDisplay({ result, onRedo, onNew, onBack, readOnly }
             </div>
 
             {/* 3. Text with Highlights (The Core Feature) */}
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-slate-800 bg-slate-950/50">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl">
+                <div className="p-6 border-b border-slate-800 bg-slate-950/50 rounded-t-2xl">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-violet-400" />
                         Correção Detalhada no Texto
