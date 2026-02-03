@@ -18,7 +18,7 @@ export default function LandingPage() {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
                     setUser(user);
-                    // router.push("/dashboard"); // Don't redirect automatically, allow viewing pricing
+                    router.push("/dashboard");
                 }
             }
         };
