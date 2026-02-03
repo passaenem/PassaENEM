@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, CheckCircle, TrendingUp, Brain, ArrowRight, Quote } from "lucide-react";
+import { GraduationCap, CheckCircle, TrendingUp, Brain, ArrowRight, Quote, Calendar, FileText, PenTool, Trophy, LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -247,23 +247,27 @@ export default function LandingPage() {
                             <ul className="space-y-3 mb-8 flex-1 text-sm">
                                 <li className="flex items-center gap-2 text-white">
                                     <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    <strong>350 Questões mensais*</strong>
+                                    <strong>350 Créditos Mensais</strong>
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    ENEM + Concursos
+                                    <Calendar className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                    Cronograma de Estudos Personalizado
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    Sem fidelidade
+                                    <FileText className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                    Simulados Oficiais (ENEM) + IA
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                    Ranking com Premiação
+                                    <PenTool className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                    Redação com Correção Detalhada
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
-                                    <CheckCircle className="w-4 h-4 text-pink-400 flex-shrink-0" />
-                                    <strong>Redação com IA</strong>
+                                    <Trophy className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                    Desafios com Premiação em Dinheiro
+                                </li>
+                                <li className="flex items-center gap-2 text-white">
+                                    <LayoutDashboard className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                    Dashboard de Desempenho Completo
                                 </li>
                             </ul>
 
@@ -303,31 +307,37 @@ export default function LandingPage() {
                                     <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
                                         <CheckCircle className="w-3 h-3 text-violet-400" />
                                     </div>
-                                    <strong>350 Questões mensais*</strong>
+                                    <strong>350 Créditos Mensais</strong>
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
                                     <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
+                                        <Calendar className="w-3 h-3 text-violet-400" />
                                     </div>
-                                    Acesso Total (ENEM + Concursos)
+                                    Cronograma de Estudos Personalizado
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
                                     <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
+                                        <FileText className="w-3 h-3 text-violet-400" />
                                     </div>
-                                    <span className="text-green-400 font-bold">Ganhe prêmios em dinheiro</span>
+                                    Simulados Oficiais (ENEM) + IA
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
                                     <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
+                                        <PenTool className="w-3 h-3 text-violet-400" />
                                     </div>
-                                    Histórico Avançado
+                                    Redação com Correção Detalhada
                                 </li>
                                 <li className="flex items-center gap-2 text-white">
                                     <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                        <CheckCircle className="w-3 h-3 text-violet-400" />
+                                        <Trophy className="w-3 h-3 text-green-400" />
                                     </div>
-                                    <span className="text-pink-400 font-bold">Redação Ilimitada*</span>
+                                    <span className="text-green-400 font-bold">Desafios com Premiação em Dinheiro</span>
+                                </li>
+                                <li className="flex items-center gap-2 text-white">
+                                    <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                        <LayoutDashboard className="w-3 h-3 text-violet-400" />
+                                    </div>
+                                    Dashboard de Desempenho Completo
                                 </li>
                             </ul>
 
