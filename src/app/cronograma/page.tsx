@@ -65,6 +65,20 @@ export default function SchedulePage() {
                     setUser(user);
                     const { data: profile } = await supabase.from('profiles').select('credits').eq('id', user.id).single();
                     if (profile) setCredits(profile.credits);
+
+                    // Check for existing schedule
+                    const { data: existingSchedule } = await supabase
+                        .from('user_schedules')
+                        .select('week_number, schedule_data')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    if (existingSchedule) {
+                        setGeneratedSchedule(existingSchedule.schedule_data);
+                        setSelectedWeek(existingSchedule.week_number);
+                    }
                 }
             }
         };
