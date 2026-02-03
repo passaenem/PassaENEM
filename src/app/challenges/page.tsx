@@ -521,7 +521,7 @@ export default function ChallengesPage() {
                                         <div className="flex flex-col gap-2">
                                             <div className="flex items-center text-sm text-slate-400 gap-4">
                                                 <div className="flex items-center gap-1" title="Participantes"><Users className="w-4 h-4" /> {challenge.participants}</div>
-                                                <div className="flex items-center gap-1" title="Encerramento"><Clock className="w-4 h-4" /> {challenge.timeLeft}</div>
+                                                <div className="flex items-center gap-1" title="Encerramento"><Clock className="w-4 h-4" /> Encerra em: {challenge.timeLeft}</div>
                                             </div>
 
                                             {/* RANKING DISPLAY - TOP 3 */}
