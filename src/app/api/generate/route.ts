@@ -114,7 +114,14 @@ JSON ESPERADO:
       "enunciado": "Texto da questão (Estilo Banca Real)...",
       "alternativas": { "A": "...", "B": "...", "C": "...", "D": "...", "E": "..." },
       "alternativa_correta": "A",
-      "explicacao": "**Análise Técnica:** ...\\n\\n💡 **Metáfora:** ...\\n\\n❌ **Por que as outras erraram?** ...\\n\\n🧠 **Estratégia de Banca:** ...",
+      "explicacao": {
+        "analise_erro": "Você confundiu X com Y...",
+        "gabarito_detalhado": ["Ponto 1...", "Ponto 2..."],
+        "metafora": "Imagine que...",
+        "por_que_nao_outras": "B: Errada por... \\n C: Errada por...",
+        "enem_contexto": "Estratégia da Banca X...",
+        "dica_revisao": "Para concursos, foque na lei seca..."
+      },
       "dificuldade": "${params.nivel}",
       "pontuacao": 175
     }
@@ -149,7 +156,14 @@ JSON ESPERADO:
       "enunciado": "(ENEM Simulado) Texto base... \\n\\n Comando da questão...",
       "alternativas": { "A": "...", "B": "...", "C": "...", "D": "...", "E": "..." },
       "alternativa_correta": "A",
-      "explicacao": "**Resolução:** ...\\n\\n💡 **Metáfora:** ...\\n\\n🔎 **Raio-X do ENEM:** (Qual habilidade foi cobrada?)\\n\\n⚠️ **Distratores:** (Cuidado com a alternativa que parece certa mas é extrapolação)",
+      "explicacao": {
+        "analise_erro": "Se marcou B, cuidado com...",
+        "gabarito_detalhado": ["A resposta segue a lógica Y...", "O texto base indica..."],
+        "metafora": "Pense na MITOCÔNDRIA como uma USINA...",
+        "por_que_nao_outras": "B: Errada porque... \\n C: Errada porque...",
+        "enem_contexto": "Habilidade H12...",
+        "dica_revisao": "Associe sempre Energia com Mitocôndria."
+      },
       "dificuldade": "${params.nivel}",
       "pontuacao": 175
     }

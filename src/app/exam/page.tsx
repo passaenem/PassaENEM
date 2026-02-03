@@ -5,9 +5,19 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, RotateCcw, CheckCircle, ShieldAlert, Lock, Save, Clock } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCcw, CheckCircle, ShieldAlert, Lock, Save, Clock, Lightbulb, BookOpen, Target, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+// Interface for Explanation Object
+interface ExplanationSchema {
+    analise_erro: string;
+    gabarito_detalhado: string[];
+    metafora: string;
+    por_que_nao_outras: string;
+    enem_contexto: string;
+    dica_revisao: string;
+}
 
 // Interface for Question
 interface Question {
@@ -17,7 +27,7 @@ interface Question {
     question: string;
     options: string[];
     correctAnswer: number;
-    explanation: string;
+    explanation: string | ExplanationSchema;
     difficulty: string;
     topic: string;
     pontuacao?: number;
@@ -587,13 +597,114 @@ export default function ExamPage() {
                         })}
                     </div>
 
+                    {/* Interface for Explanation Object */}
+
+
                     {finished && !isRanked && (
-                        <div className="mt-6 p-4 bg-blue-900/20 text-blue-300 rounded-md border border-blue-900/50 animate-in fade-in slide-in-from-top-2">
-                            <span className="font-semibold block mb-1 flex items-center gap-2">
-                                💡 Explicação
-                            </span>
-                            {currentQuestion.explanation}
-                        </div>
+                        currentQuestion.explanation && typeof currentQuestion.explanation === 'object' ? (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                {/* 1. HEADER: Resultado (Visual) */}
+                                {answers[currentQuestion.id] === currentQuestion.correctAnswer ? (
+                                    <div className="p-3 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center gap-2 text-green-400 font-bold">
+                                        <CheckCircle className="w-5 h-5" />
+                                        Você acertou! Parabéns.
+                                    </div>
+                                ) : (
+                                    <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-400 font-bold">
+                                        <ShieldAlert className="w-5 h-5" />
+                                        {/* @ts-ignore */}
+                                        {currentQuestion.explanation.analise_erro || "Você cometeu um deslize. Veja o motivo abaixo."}
+                                    </div>
+                                )}
+
+                                {/* 2. METÁFORA (DESTAQUE) */}
+                                {/* @ts-ignore */}
+                                {currentQuestion.explanation.metafora && (
+                                    <div className="p-4 bg-yellow-950/30 border-l-4 border-yellow-500 rounded-r-lg">
+                                        <h4 className="flex items-center gap-2 text-yellow-500 font-bold mb-1 uppercase text-xs tracking-wider">
+                                            <Lightbulb className="w-4 h-4" />
+                                            Para não esquecer (Metáfora)
+                                        </h4>
+                                        <p className="text-yellow-100 italic text-lg leading-relaxed">
+                                            "{/* @ts-ignore */}{currentQuestion.explanation.metafora}"
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* 3. GABARITO DETALHADO */}
+                                <div className="p-4 bg-slate-950 rounded-lg border border-slate-800">
+                                    <h4 className="flex items-center gap-2 text-slate-300 font-bold mb-3 uppercase text-xs tracking-wider">
+                                        <BookOpen className="w-4 h-4 text-blue-400" />
+                                        Análise Técnica
+                                    </h4>
+                                    <ul className="space-y-2">
+                                        {/* @ts-ignore */}
+                                        {Array.isArray(currentQuestion.explanation.gabarito_detalhado) ? (
+                                            /* @ts-ignore */
+                                            currentQuestion.explanation.gabarito_detalhado.map((point: string, i: number) => (
+                                                <li key={i} className="flex gap-2 text-slate-300">
+                                                    <span className="text-blue-500 mt-1">•</span>
+                                                    <span>{point}</span>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            /* @ts-ignore */
+                                            <p className="text-slate-300">{currentQuestion.explanation.gabarito_detalhado}</p>
+                                        )}
+                                    </ul>
+                                </div>
+
+                                {/* 4. CONTEXTO ENEM & REVISÃO (Grid) */}
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {/* @ts-ignore */}
+                                    {currentQuestion.explanation.enem_contexto && (
+                                        <div className="p-3 bg-slate-900 rounded border border-slate-800">
+                                            <h4 className="text-violet-400 font-bold text-xs uppercase mb-1 flex items-center gap-1">
+                                                <Target className="w-3 h-3" /> No ENEM/Concurso
+                                            </h4>
+                                            {/* @ts-ignore */}
+                                            <p className="text-slate-400 text-sm">{currentQuestion.explanation.enem_contexto}</p>
+                                        </div>
+                                    )}
+                                    {/* @ts-ignore */}
+                                    {currentQuestion.explanation.dica_revisao && (
+                                        <div className="p-3 bg-slate-900 rounded border border-slate-800">
+                                            <h4 className="text-green-400 font-bold text-xs uppercase mb-1 flex items-center gap-1">
+                                                <RotateCcw className="w-3 h-3" /> Dica Flash
+                                            </h4>
+                                            {/* @ts-ignore */}
+                                            <p className="text-slate-400 text-sm">{currentQuestion.explanation.dica_revisao}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 5. POR QUE AS OUTRAS ERRAM? */}
+                                {/* @ts-ignore */}
+                                {currentQuestion.explanation.por_que_nao_outras && (
+                                    <div className="mt-2 text-sm text-slate-500 border-t border-slate-800 pt-2">
+                                        <details className="cursor-pointer group">
+                                            <summary className="font-semibold hover:text-slate-300 transition-colors list-none flex items-center gap-2">
+                                                <ChevronRight className="w-4 h-4 group-open:rotate-90 transition-transform" />
+                                                Por que as outras alternativas estão incorretas?
+                                            </summary>
+                                            <p className="mt-2 pl-6 whitespace-pre-line leading-relaxed">
+                                                {/* @ts-ignore */}
+                                                {currentQuestion.explanation.por_que_nao_outras}
+                                            </p>
+                                        </details>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            // LEGACY STRING FEEDBACK
+                            <div className="mt-6 p-4 bg-blue-900/20 text-blue-300 rounded-md border border-blue-900/50 animate-in fade-in slide-in-from-top-2">
+                                <span className="font-semibold block mb-1 flex items-center gap-2">
+                                    💡 Explicação
+                                </span>
+                                {/* @ts-ignore */}
+                                {currentQuestion.explanation}
+                            </div>
+                        )
                     )}
                 </CardContent>
             </Card>
