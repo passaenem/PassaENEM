@@ -8,6 +8,7 @@ import { GraduationCap, Briefcase, Zap, Trophy, TrendingUp } from "lucide-react"
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getExamHistory, SavedExam } from "@/lib/storage";
+import { DailyMotivation } from "@/components/DailyMotivation";
 
 export default function Home() {
   const [stats, setStats] = useState({
@@ -115,6 +116,7 @@ export default function Home() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
+      <DailyMotivation />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
