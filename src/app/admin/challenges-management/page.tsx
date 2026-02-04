@@ -60,6 +60,13 @@ export default function ChallengeManagementPage() {
 
                 const participantsData = results.map(r => {
                     const profile = profiles?.find(p => p.id === r.user_id);
+
+                    // Format duration
+                    const timeSeconds = r.time_taken_seconds || 0;
+                    const minutes = Math.floor(timeSeconds / 60);
+                    const seconds = timeSeconds % 60;
+                    const duration = timeSeconds > 0 ? `${minutes}m ${seconds}s` : "N/A";
+
                     return {
                         result_id: r.id,
                         user_id: r.user_id,
@@ -69,8 +76,7 @@ export default function ChallengeManagementPage() {
                         total: r.total_questions,
                         percentage: r.score_percentage,
                         completed_at: new Date(r.created_at).toLocaleString('pt-BR'),
-                        // Mock duration if not available, simply displaying completed time for now
-                        time_taken: "N/A"
+                        time_taken: duration
                     };
                 });
                 setParticipants(participantsData);
@@ -144,6 +150,7 @@ export default function ChallengeManagementPage() {
                                             <th scope="col" className="px-6 py-3">Participante</th>
                                             <th scope="col" className="px-6 py-3">Pontuação</th>
                                             <th scope="col" className="px-6 py-3">Acertos</th>
+                                            <th scope="col" className="px-6 py-3">Tempo</th>
                                             <th scope="col" className="px-6 py-3 rounded-r-lg">Data de Conclusão</th>
                                         </tr>
                                     </thead>
@@ -165,6 +172,9 @@ export default function ChallengeManagementPage() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {participant.score}/{participant.total}
+                                                </td>
+                                                <td className="px-6 py-4 font-mono text-slate-300">
+                                                    {participant.time_taken}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {participant.completed_at}
