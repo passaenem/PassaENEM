@@ -139,6 +139,20 @@ export function Sidebar() {
                             Criar Desafio (Admin)
                         </Link>
                     )}
+                    {user && user.id === ADMIN_ID && (
+                        <Link
+                            href="/admin/challenges-management"
+                            className={cn(
+                                "flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+                                pathname === "/admin/challenges-management"
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            )}
+                        >
+                            <Trophy className={cn("mr-3 h-5 w-5", pathname === "/admin/challenges-management" ? "text-primary" : "text-muted-foreground")} />
+                            Gestão Desafio
+                        </Link>
+                    )}
                     {user?.id === ADMIN_ID && (
                         <Link
                             href="/admin"
