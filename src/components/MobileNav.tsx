@@ -103,7 +103,7 @@ export function MobileNav() {
 
             {/* Mobile Drawer */}
             {open && (
-                <div className="fixed inset-0 top-[65px] z-50 bg-background/95 backdrop-blur-sm p-4 animate-in fade-in slide-in-from-top-5">
+                <div className="fixed inset-0 top-[65px] z-50 bg-background/95 backdrop-blur-sm p-4 animate-in fade-in slide-in-from-top-5 overflow-y-auto max-h-[calc(100vh-65px)]">
                     <nav className="space-y-2">
                         {navigation.map((item) => {
                             const isActive = pathname === item.href;

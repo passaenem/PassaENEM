@@ -249,7 +249,7 @@ export default function EnemGeneratorPage() {
                         )}
 
                         {/* Exam Type Toggle */}
-                        <div className="flex p-1 bg-slate-900 rounded-lg mb-6 border border-slate-800">
+                        <div className="flex flex-col sm:flex-row p-1 bg-slate-900 rounded-lg mb-6 border border-slate-800 gap-2 sm:gap-0">
                             <button
                                 type="button"
                                 onClick={() => setExamType('ia')}
