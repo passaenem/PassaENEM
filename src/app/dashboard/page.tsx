@@ -195,10 +195,10 @@ export default function Home() {
                   const heightPercentage = Math.max(score, 5); // Ensure min height
 
                   return (
-                    <div key={i} className="flex flex-col items-center gap-2 group w-full">
+                    <div key={i} className="flex flex-col items-center gap-2 group w-full h-full justify-end">
                       <div
                         className="w-8 md:w-12 bg-violet-600 rounded-t-md transition-all hover:bg-violet-500 relative"
-                        style={{ height: `${heightPercentage}%` }}
+                        style={{ height: `${heightPercentage * 0.8}%` }}
                       >
                         <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                           {Math.round(score)}%
