@@ -12,11 +12,20 @@ export function DailyMotivation() {
 
     useEffect(() => {
         const checkMotivation = async () => {
-            const today = new Date().toISOString().split('T')[0];
-            const seenDate = localStorage.getItem('motivation_seen_date');
+            // dynamic import to avoid potential SSR issues with auth
+            const { supabase } = await import("@/lib/supabase");
+            if (!supabase) return;
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            // Use local date for consistency with user's perspective
+            const today = new Date().toLocaleDateString('pt-BR');
+            const storageKey = `motivation_seen_${user.id}`;
+            const lastSeenDate = localStorage.getItem(storageKey);
 
             // If already seen today, do nothing
-            if (seenDate === today) {
+            if (lastSeenDate === today) {
                 return;
             }
 
@@ -38,17 +47,25 @@ export function DailyMotivation() {
             }
         };
 
-        // Small delay to not conflict with heavy initial load
+        // Small delay to ensure client side hydration and not block main thread
         const timer = setTimeout(() => {
             checkMotivation();
-        }, 1500);
+        }, 2000);
 
         return () => clearTimeout(timer);
     }, []);
 
-    const handleClose = () => {
-        const today = new Date().toISOString().split('T')[0];
-        localStorage.setItem('motivation_seen_date', today);
+    const handleClose = async () => {
+        const { supabase } = await import("@/lib/supabase");
+        const { data: { user } } = await supabase?.auth.getUser() || { data: { user: null } };
+
+        // Save using Local Date and User ID
+        if (user) {
+            const today = new Date().toLocaleDateString('pt-BR');
+            const storageKey = `motivation_seen_${user.id}`;
+            localStorage.setItem(storageKey, today);
+        }
+
         setOpen(false);
     };
 
