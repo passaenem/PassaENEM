@@ -101,9 +101,9 @@ export default function LandingPage() {
             <section className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-violet-600/20 blur-[120px] rounded-full -z-10" />
 
-                <div className="inline-flex items-center rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-sm text-violet-300 mb-8 animate-in fade-in slide-in-from-bottom-5">
+                <div className="inline-flex items-center rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-sm text-violet-300 mb-8 animate-in fade-in slide-in-from-bottom-5 shadow-[0_0_15px_rgba(139,92,246,0.3)] hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] transition-shadow duration-500 cursor-default">
                     <span className="flex h-2 w-2 rounded-full bg-violet-400 mr-2 animate-pulse"></span>
-                    Nova IA: Geração de questões 2x mais precisa
+                    Nova IA: Geração de Questões 2x Mais Precisa
                 </div>
 
                 <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 max-w-4xl animate-in fade-in slide-in-from-bottom-10 duration-700">
@@ -151,40 +151,42 @@ export default function LandingPage() {
             {/* Features Grid */}
             <section id="features" className="py-20 bg-slate-950">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold text-center mb-16">Por que escolher o Passa Enem?</h2>
+                    <h2 className="text-3xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                        Por Que Escolher o Passa Enem?
+                    </h2>
 
                     <div className="grid md:grid-cols-3 gap-8">
                         {/* Feature 1 */}
-                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-violet-500/50 transition-colors group">
-                            <div className="h-12 w-12 rounded-xl bg-violet-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-violet-500/50 transition-all duration-300 group hover:shadow-lg hover:shadow-violet-500/10 hover:-translate-y-1">
+                            <div className="h-12 w-12 rounded-xl bg-violet-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                                 <Brain className="h-6 w-6 text-violet-400" />
                             </div>
-                            <h3 className="text-xl font-bold mb-2">IA Gemini 2.0</h3>
+                            <h3 className="text-xl font-bold mb-2 text-white group-hover:text-violet-300 transition-colors">IA Gemini 2.0</h3>
                             <p className="text-slate-400">
                                 Questões inéditas geradas na hora, baseadas nas competências reais do ENEM e Concursos.
                             </p>
                         </div>
 
                         {/* Feature 2 */}
-                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-green-500/50 transition-colors group relative overflow-hidden">
-                            <div className="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-bl-lg">
+                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-green-500/50 transition-all duration-300 group relative overflow-hidden hover:shadow-lg hover:shadow-green-500/10 hover:-translate-y-1">
+                            <div className="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-bl-lg shadow-lg shadow-green-900/50">
                                 PREMIADO
                             </div>
-                            <div className="h-12 w-12 rounded-xl bg-green-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <div className="h-12 w-12 rounded-xl bg-green-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                                 <TrendingUp className="h-6 w-6 text-green-400" />
                             </div>
-                            <h3 className="text-xl font-bold mb-2">desafios Valendo Pix</h3>
+                            <h3 className="text-xl font-bold mb-2 text-white group-hover:text-green-300 transition-colors">Desafios Valendo Pix</h3>
                             <p className="text-slate-400">
                                 Provas semanais criadas pela administração. Os melhores colocados no Ranking Global recebem prêmios em dinheiro.
                             </p>
                         </div>
 
                         {/* Feature 3 */}
-                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 transition-colors group">
-                            <div className="h-12 w-12 rounded-xl bg-blue-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-blue-500/50 transition-all duration-300 group hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1">
+                            <div className="h-12 w-12 rounded-xl bg-blue-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                                 <CheckCircle className="h-6 w-6 text-blue-400" />
                             </div>
-                            <h3 className="text-xl font-bold mb-2">Correção com IA</h3>
+                            <h3 className="text-xl font-bold mb-2 text-white group-hover:text-blue-300 transition-colors">Correção com IA</h3>
                             <p className="text-slate-400">
                                 Redações corrigidas em segundos com nota detalhada por competência e feedback pedagógico completo.
                             </p>
@@ -196,7 +198,9 @@ export default function LandingPage() {
             {/* Pricing Section */}
             <section id="pricing" className="py-20 bg-slate-900">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold text-center mb-16">Planos que cabem no seu bolso</h2>
+                    <h2 className="text-3xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                        Planos Que Cabem no Seu Bolso
+                    </h2>
 
                     <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
@@ -365,8 +369,8 @@ export default function LandingPage() {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 blur-[100px] rounded-full -z-10" />
 
                 <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold text-center mb-16 animate-in fade-in slide-in-from-bottom-5">
-                        O que nossos alunos dizem
+                    <h2 className="text-3xl font-bold text-center mb-16 animate-in fade-in slide-in-from-bottom-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                        O Que Nossos Alunos Dizem
                     </h2>
 
                     <div className="grid md:grid-cols-3 gap-8">
