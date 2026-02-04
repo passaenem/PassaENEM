@@ -64,7 +64,9 @@ export function DailyMotivation() {
 
                 <div className="p-8 text-center space-y-6">
                     <div>
-                        <h2 className="text-xl font-bold mb-2">Foco na Missão 🎯</h2>
+                        <h2 className="text-xl font-bold mb-2 uppercase tracking-wide text-violet-400">
+                            Motivação do Dia • {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                        </h2>
                         <p className="text-slate-300 text-lg font-medium leading-relaxed italic">
                             "{message}"
                         </p>
