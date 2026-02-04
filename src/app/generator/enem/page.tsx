@@ -44,7 +44,7 @@ export default function EnemGeneratorPage() {
     const fetchOfficialExams = async () => {
         setLoadingOfficial(true);
         if (supabase) {
-            const { data } = await supabase.from('official_exams').select('*').order('year', { ascending: false });
+            const { data } = await supabase.from('official_exams').select('*').order('year', { ascending: false }).order('title', { ascending: true });
             setOfficialExams(data || []);
         }
         setLoadingOfficial(false);
