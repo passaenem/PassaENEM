@@ -46,6 +46,8 @@ export default function SchedulePage() {
     const [generatedSchedule, setGeneratedSchedule] = useState<ScheduleResponse | null>(null);
     const [selectedWeek, setSelectedWeek] = useState(1);
 
+    const [initializing, setInitializing] = useState(true);
+
     const [formData, setFormData] = useState({
         objective: '',
         examDate: '',
@@ -81,6 +83,7 @@ export default function SchedulePage() {
                     }
                 }
             }
+            setInitializing(false);
         };
         fetchUser();
     }, []);
@@ -136,6 +139,15 @@ export default function SchedulePage() {
     };
 
     const subjects = ["Matemática", "Linguagens", "Ciências Humanas", "Ciências da Natureza", "Redação"];
+
+    if (initializing) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
+                <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+                <p className="text-slate-400">Carregando seu plano de estudos...</p>
+            </div>
+        );
+    }
 
     if (generatedSchedule) {
         return (
