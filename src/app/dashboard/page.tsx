@@ -190,18 +190,23 @@ export default function Home() {
             <div className="h-[200px] flex items-end justify-around p-4 border-b border-dashed border-slate-700">
               {stats.recentExams.length > 0 ? (
                 stats.recentExams.slice(0, 7).reverse().map((exam, i) => {
-                  const score = exam.score || 0;
+                  const rawScore = exam.score;
+                  const score = typeof rawScore === 'number' ? rawScore : parseFloat(String(rawScore)) || 0;
+                  const heightPercentage = Math.max(score, 5); // Ensure min height
+
                   return (
                     <div key={i} className="flex flex-col items-center gap-2 group w-full">
                       <div
                         className="w-8 md:w-12 bg-violet-600 rounded-t-md transition-all hover:bg-violet-500 relative"
-                        style={{ height: `${Math.max(score, 5)}%` }} // Min 5% height to show something
+                        style={{ height: `${heightPercentage}%` }}
                       >
-                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                          {score}%
+                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          {Math.round(score)}%
                         </span>
                       </div>
-                      <span className="text-[10px] text-muted-foreground truncate max-w-[60px]">{new Date(exam.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}</span>
+                      <span className="text-[10px] text-muted-foreground truncate max-w-[60px]">
+                        {new Date(exam.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })}
+                      </span>
                     </div>
                   )
                 })
