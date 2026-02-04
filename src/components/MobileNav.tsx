@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X, LogIn, LogOut, ShieldAlert, Users, CreditCard, MessageSquareHeart } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Menu, X, LogIn, LogOut, ShieldAlert, Users, CreditCard, MessageSquareHeart, Calendar, PenTool } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,14 @@ const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Gerador ENEM", href: "/generator/enem", icon: GraduationCap },
     { name: "Gerador Concursos", href: "/generator/concurso", icon: Briefcase },
+    { name: "Cronograma", href: "/cronograma", icon: Calendar },
     { name: "Minhas Provas", href: "/history", icon: History },
     { name: "Desafios", href: "/challenges", icon: Trophy },
+    { name: "Redação", href: "/redacao", icon: PenTool },
+    { name: "Minhas Redações", href: "/redacao/history", icon: History },
     { name: "Mural de Feedbacks", href: "/feedbacks", icon: MessageSquareHeart },
     { name: "Comunidade", href: "https://chat.whatsapp.com/EbKOEBYCHvA0OgBbepywny?mode=gi_c", icon: Users },
+    { name: "Configurações", href: "/configuracoes", icon: Settings },
 ];
 
 const ADMIN_ID = "426d48bb-fc97-4461-acc9-a8a59445b72d";
