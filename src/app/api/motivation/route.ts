@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export const dynamic = 'force-dynamic';
+
 // Cache interface
 interface DailyMotivation {
     id: string;
@@ -11,7 +13,8 @@ interface DailyMotivation {
 
 export async function GET() {
     try {
-        const today = new Date().toISOString().split('T')[0];
+        // Use Brazil time to determine "today"
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 
         // 0. Check Supabase connection
         if (!supabase) {

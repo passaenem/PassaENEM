@@ -40,6 +40,7 @@ export default function AdminDashboardPage() {
                 const { data: payments } = await supabase.from('payments').select('*').order('created_at', { ascending: false });
                 const { data: exams } = await supabase.from('exam_results').select('*');
                 const { data: challenges } = await supabase.from('challenges').select('*'); // If exists
+                const { data: motivations } = await supabase.from('daily_motivations').select('id');
 
                 // 2. Calculate Stats
 
@@ -54,16 +55,21 @@ export default function AdminDashboardPage() {
                 const totalRevenue = payments?.filter(p => p.status === 'approved').reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0;
 
                 // AI Usage
-                // Assuming exams have 'questions' array. 
-                const totalQuestions = exams?.reduce((acc, curr) => acc + (curr.questions?.length || 0), 0) || 0;
+                // Assuming exams have 'questions' array. Use correct column 'questions_json'
+                const totalQuestions = exams?.reduce((acc, curr) => acc + (curr.questions_json?.length || 0), 0) || 0;
+                const totalMotivations = motivations?.length || 0;
+
+                // Total requests = Questions generated + Daily Motivations
+                // Note: Each question is 1 generation, each motivation is 1 generation.
+                const totalAIRequests = totalQuestions + totalMotivations;
 
                 // Calculate Today Generated (Exams)
                 const todayV = new Date();
                 todayV.setHours(0, 0, 0, 0);
                 const todayGenerated = exams?.filter(e => new Date(e.created_at) >= todayV).length || 0;
 
-                const creditsConsumed = totalQuestions; // 1 credit per question approx
-                const aiCost = totalQuestions * 0.0005; // Estimate $0.0005 per request
+                const creditsConsumed = totalAIRequests;
+                const aiCost = totalAIRequests * 0.0005; // Estimate $0.0005 per request
 
                 // 3. Process Charts Data
 
@@ -85,7 +91,7 @@ export default function AdminDashboardPage() {
                 // We need to count by user_id
                 const userUsageMap = new Map();
                 exams?.forEach(e => {
-                    userUsageMap.set(e.user_id, (userUsageMap.get(e.user_id) || 0) + (e.questions?.length || 0));
+                    userUsageMap.set(e.user_id, (userUsageMap.get(e.user_id) || 0) + (e.questions_json?.length || 0));
                 });
                 const topUsers = Array.from(userUsageMap.entries())
                     .sort((a: any, b: any) => b[1] - a[1])
@@ -114,7 +120,7 @@ export default function AdminDashboardPage() {
                     ai: {
                         usageByType,
                         topUsers,
-                        metrics: { totalGenerated: totalQuestions, todayGenerated: todayGenerated, avgPerUser: Math.round(totalQuestions / (totalUsers || 1)) }
+                        metrics: { totalGenerated: totalAIRequests, todayGenerated: todayGenerated, avgPerUser: Math.round(totalAIRequests / (totalUsers || 1)) }
                     },
                     challenges: {
                         activeChallenges: challenges?.length || 0,
