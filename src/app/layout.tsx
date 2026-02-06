@@ -95,6 +95,7 @@ export default function RootLayout({
             gtag('js', new Date());
 
             gtag('config', 'G-L1Q1XQJHWQ');
+            gtag('config', 'AW-17936422380');
           `}
         </Script>
         <AppShell>{children}</AppShell>

@@ -40,7 +40,11 @@ export async function POST(req: NextRequest) {
             );
 
             if (result.success) {
-                return NextResponse.json({ success: true, message: "Synced successfully" });
+                return NextResponse.json({
+                    success: true,
+                    message: "Synced successfully",
+                    value: paymentData.transaction_amount
+                });
             } else {
                 return NextResponse.json({ success: false, error: result.error || "Activation failed", details: result.error }, { status: 500 });
             }

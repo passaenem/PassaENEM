@@ -37,6 +37,17 @@ function PaymentSuccessContent() {
                     if (data.success) {
                         setStatus('Pagamento confirmado! Ativando plano...');
                         setIsSuccess(true);
+
+                        // Fire Google Ads Conversion
+                        if (typeof window !== 'undefined' && (window as any).gtag) {
+                            (window as any).gtag('event', 'conversion', {
+                                'send_to': 'AW-17936422380/O4a4COGyhvQbEOyr4OHc',
+                                'value': data.value,
+                                'currency': 'BRL',
+                                'transaction_id': paymentId
+                            });
+                        }
+
                         setTimeout(() => router.push('/dashboard'), 2000);
                     } else {
                         console.error("Sync failed:", data.error);
