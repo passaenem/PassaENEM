@@ -29,7 +29,7 @@ export async function GET() {
 
         // 2. Update them to 'free' and clear expiration
         const updates = expiredUsers.map(user =>
-            supabase
+            supabase!
                 .from('profiles')
                 .update({ plan_type: 'free', plan_expires_at: null })
                 .eq('id', user.id)
