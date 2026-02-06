@@ -1,0 +1,47 @@
+export const FALLBACK_QUOTES = [
+    "A disciplina é a ponte entre metas e realizações.",
+    "Não pare quando estiver cansado. Pare quando tiver terminado.",
+    "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
+    "A persistência realiza o impossível.",
+    "Se fosse fácil, todo mundo faria.",
+    "Seu único limite é você mesmo.",
+    "O futuro depende do que você faz hoje.",
+    "Estude enquanto eles dormem. Trabalhe enquanto eles se divertem. Viva o que eles sonham.",
+    "A dor é temporária. A glória é eterna.",
+    "Foco no processo, não apenas no resultado.",
+    "Cada questão resolvida é um passo mais perto da aprovação.",
+    "A constância vence a intensidade.",
+    "Não troque o que você mais quer na vida pelo que você mais quer no momento.",
+    "A motivação te faz começar. O hábito te faz continuar.",
+    "Se você não lutar pelo que quer, não chore pelo que perder.",
+    "Sucesso é o resultado de preparação, trabalho duro e aprendizado com o fracasso.",
+    "Acredite que você pode, assim você já está no meio do caminho.",
+    "O segredo do sucesso é a constância do propósito.",
+    "Transforme seus sonhos em planos e seus planos em realidade.",
+    "A única forma de fazer um grande trabalho é amar o que se faz.",
+    "Disciplina é liberdade.",
+    "O único lugar onde o sucesso vem antes do trabalho é no dicionário.",
+    "Não conte os dias, faça os dias contarem.",
+    "Grandes coisas nunca vêm de zonas de conforto.",
+    "A melhor vingança é um sucesso estrondoso.",
+    "Se a caminhada está difícil, é porque você está no caminho certo.",
+    "O homem que move montanhas começa carregando pedras pequenas.",
+    "A sorte favorece a mente preparada.",
+    "Faça hoje o que seu 'eu' do futuro vai agradecer.",
+    "Vença a si mesmo e terá vencido tudo.",
+    "Nada supera o trabalho duro.",
+    "Seus hábitos, não seus desejos, decidem seu futuro.",
+    "A aprovação é construída questão por questão.",
+    "Desistir é a única saída para o fracasso garantido.",
+    "Seja mais forte que sua melhor desculpa.",
+    "Estudar é o caminho mais curto para a liberdade.",
+    "O sacrifício de hoje é o sucesso de amanhã.",
+    "Não espere por inspiração. Torne-se disciplinado.",
+    "A melhor maneira de prever o futuro é criá-lo.",
+    "Tudo parece impossível até que seja feito."
+];
+
+export function getRandomQuote(): string {
+    const randomIndex = Math.floor(Math.random() * FALLBACK_QUOTES.length);
+    return FALLBACK_QUOTES[randomIndex];
+}
