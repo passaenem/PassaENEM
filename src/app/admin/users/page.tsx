@@ -23,6 +23,11 @@ export default function AdminUsersPage() {
     const [isGrantProOpen, setIsGrantProOpen] = useState(false);
     const [proDays, setProDays] = useState("30");
 
+    // Add Credits Modal State
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [creditAmount, setCreditAmount] = useState("");
+    const [isAddCreditsOpen, setIsAddCreditsOpen] = useState(false);
+
     useEffect(() => {
         const init = async () => {
             if (!supabase) return;
