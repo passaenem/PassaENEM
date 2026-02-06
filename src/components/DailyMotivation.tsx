@@ -28,9 +28,14 @@ export function DailyMotivation() {
                 const res = await fetch('/api/motivation');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.message) {
+
+                    // Only show if not seen today
+                    if (!data.seen && data.message) {
                         setMessage(data.message);
                         setOpen(true);
+
+                        // Log view immediately
+                        await fetch('/api/motivation/view', { method: 'POST' });
                     }
                 }
             } catch (error) {
@@ -48,8 +53,7 @@ export function DailyMotivation() {
         return () => clearTimeout(timer);
     }, []);
 
-    const handleClose = async () => {
-        // Just close, no need to save to localStorage anymore
+    const handleClose = () => {
         setOpen(false);
     };
 
