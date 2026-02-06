@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase-server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getRandomQuote } from '@/lib/quotes';
 
@@ -10,7 +10,9 @@ export async function GET() {
         // Use Brazil time to determine "today"
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 
-        // 0. Check Supabase connection
+        // 0. Init Supabase (Server Client)
+        const supabase = await createClient();
+
         if (!supabase) {
             console.warn("Supabase client not initialized");
             // Fallback
