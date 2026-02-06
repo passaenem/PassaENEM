@@ -1,0 +1,8 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/update-motivation",
+            "schedule": "0 3 * * *"
+        }
+    ]
+}

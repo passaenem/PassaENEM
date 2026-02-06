@@ -130,12 +130,34 @@ export default function SchedulePage() {
         }
     };
 
-    const toggleBlockCompletion = (dayIndex: number, blockIndex: number) => {
-        if (!generatedSchedule) return;
-        const newSchedule = { ...generatedSchedule };
+    const toggleBlockCompletion = async (dayIndex: number, blockIndex: number) => {
+        if (!generatedSchedule || !user) return;
+
+        // 1. Create deep copy to update state optimistically
+        const newSchedule = JSON.parse(JSON.stringify(generatedSchedule)) as ScheduleResponse;
         const block = newSchedule.schedule[dayIndex].blocks[blockIndex];
         block.completed = !block.completed;
+
+        // 2. Update local state immediately
         setGeneratedSchedule(newSchedule);
+
+        // 3. Persist to Supabase
+        try {
+            const { error } = await supabase!
+                .from('user_schedules')
+                .update({ schedule_data: newSchedule })
+                .eq('user_id', user.id)
+                .eq('week_number', selectedWeek);
+
+            if (error) {
+                console.error('Error saving schedule:', error);
+                // Revert on error (optional, but good practice)
+                // setGeneratedSchedule(generatedSchedule); 
+                // alert("Erro ao salvar progresso."); 
+            }
+        } catch (err) {
+            console.error("Failed to persist schedule update", err);
+        }
     };
 
     const subjects = ["Matemática", "Linguagens", "Ciências Humanas", "Ciências da Natureza", "Redação"];

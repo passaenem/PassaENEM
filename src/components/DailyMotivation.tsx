@@ -19,15 +19,8 @@ export function DailyMotivation() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Use local date for consistency with user's perspective
-            const today = new Date().toLocaleDateString('pt-BR');
-            const storageKey = `motivation_seen_${user.id}`;
-            const lastSeenDate = localStorage.getItem(storageKey);
-
-            // If already seen today, do nothing
-            if (lastSeenDate === today) {
-                return;
-            }
+            // Removed localStorage check to always fetch new message on mount/refresh
+            // as requested by user.
 
             // Fetch message
             setLoading(true);
@@ -56,16 +49,7 @@ export function DailyMotivation() {
     }, []);
 
     const handleClose = async () => {
-        const { supabase } = await import("@/lib/supabase");
-        const { data: { user } } = await supabase?.auth.getUser() || { data: { user: null } };
-
-        // Save using Local Date and User ID
-        if (user) {
-            const today = new Date().toLocaleDateString('pt-BR');
-            const storageKey = `motivation_seen_${user.id}`;
-            localStorage.setItem(storageKey, today);
-        }
-
+        // Just close, no need to save to localStorage anymore
         setOpen(false);
     };
 
