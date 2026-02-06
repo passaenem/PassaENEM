@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getRandomQuote } from '@/lib/quotes';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +14,7 @@ export async function GET() {
         if (!supabase) {
             console.warn("Supabase client not initialized");
             // Fallback
-            return NextResponse.json({ message: "A disciplina é a mãe do sucesso. Vamos!", seen: false });
+            return NextResponse.json({ message: getRandomQuote(), seen: false });
         }
 
         // 0.5 Check if User has already seen today's message
@@ -45,31 +46,43 @@ export async function GET() {
             messageToSend = existing.message;
         } else {
             // 2. Fallback: If Cron failed or hasn't run, generate on the fly
-            console.warn("No motivation found for today. Generating fallback...");
+            console.log("No motivational message in DB. Attempting generation...");
 
             const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
             if (!apiKey) {
-                messageToSend = "Bora estudar! O futuro te espera. 🚀";
+                console.warn("MISSING GEMINI_API_KEY. Using random fallback quote.");
+                messageToSend = getRandomQuote();
             } else {
-                const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                try {
+                    const genAI = new GoogleGenerativeAI(apiKey);
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-                const prompt = `
-                    Gere UMA frase curta e motivacional para um estudante que está acessando uma plataforma de estudos (ENEM/Concursos).
-                    Regras:
-                    1. Curta (máximo 15 palavras).
-                    2. Direta e disciplinada (estilo "Hard Work").
-                    3. Sem "coachês" barato ou excesso de empolgação.
-                    4. Tom sério mas encorajador.
-                    5. NÃO use aspas na resposta.
-                    6. SEJA CRIATIVO e EVITE repetições de frases clichês.
-                `;
+                    const prompt = `
+                        Gere UMA frase curta e motivacional para um estudante que está acessando uma plataforma de estudos (ENEM/Concursos).
+                        Regras:
+                        1. Curta (máximo 15 palavras).
+                        2. Direta e disciplinada (estilo "Hard Work").
+                        3. Sem "coachês" barato ou excesso de empolgação.
+                        4. Tom sério mas encorajador.
+                        5. NÃO use aspas na resposta.
+                        6. SEJA CRIATIVO e EVITE repetições de frases clichês.
+                    `;
 
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                messageToSend = response.text().trim().replace(/^["']|["']$/g, '');
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    messageToSend = response.text().trim().replace(/^["']|["']$/g, '');
 
-                // Save this fallback
+                    if (!messageToSend) throw new Error("Empty response from AI");
+
+                } catch (aiError) {
+                    console.error("AI Generation Failed:", aiError);
+                    messageToSend = getRandomQuote();
+                }
+            }
+
+            // Save this message (whether AI or Fallback) so it persists for the day
+            if (messageToSend) {
                 await supabase.from('daily_motivations').upsert({ date: today, message: messageToSend }, { onConflict: 'date' });
             }
         }
@@ -77,7 +90,7 @@ export async function GET() {
         return NextResponse.json({ message: messageToSend, seen: false });
 
     } catch (error) {
-        console.error("Error in daily motivation API:", error);
-        return NextResponse.json({ message: "A disciplina é a mãe do sucesso. Vamos!", seen: false }, { status: 200 });
+        console.error("Critical error in daily motivation API:", error);
+        return NextResponse.json({ message: getRandomQuote(), seen: false }, { status: 200 });
     }
 }
