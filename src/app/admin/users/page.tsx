@@ -19,10 +19,9 @@ export default function AdminUsersPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Add Credits Modal State
-    const [selectedUser, setSelectedUser] = useState<any>(null);
-    const [creditAmount, setCreditAmount] = useState("");
-    const [isAddCreditsOpen, setIsAddCreditsOpen] = useState(false);
+    // Grant Pro Modal State
+    const [isGrantProOpen, setIsGrantProOpen] = useState(false);
+    const [proDays, setProDays] = useState("30");
 
     useEffect(() => {
         const init = async () => {
@@ -49,6 +48,39 @@ export default function AdminUsersPage() {
             if (data) setUsers(data);
         }
         setLoading(false);
+    };
+
+    const handleGrantPro = async () => {
+        if (!selectedUser || !proDays) return;
+
+        try {
+            const response = await fetch('/api/admin/grant-pro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: selectedUser.id,
+                    days: proDays
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) throw new Error(result.error);
+
+            alert(`Sucesso! Plano PRO concedido por ${proDays} dias.`);
+
+            // Update local state
+            setUsers(prev => prev.map(u =>
+                u.id === selectedUser.id ? { ...u, plan_type: 'pro' } : u
+            ));
+
+            setIsGrantProOpen(false);
+            setProDays("30");
+            setSelectedUser(null);
+
+        } catch (error: any) {
+            alert("Erro ao conceder plano: " + error.message);
+        }
     };
 
     const handleAddCredits = async () => {
@@ -163,13 +195,23 @@ export default function AdminUsersPage() {
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <Button
-                                        size="sm"
-                                        className="bg-emerald-600 hover:bg-emerald-700 h-8 font-bold"
-                                        onClick={() => { setSelectedUser(user); setIsAddCreditsOpen(true); }}
-                                    >
-                                        <PlusCircle className="w-3 h-3 mr-1" /> Add Créditos
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            className="bg-emerald-600 hover:bg-emerald-700 h-8 font-bold"
+                                            onClick={() => { setSelectedUser(user); setIsAddCreditsOpen(true); }}
+                                        >
+                                            <PlusCircle className="w-3 h-3 mr-1" /> Add Créditos
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 border-yellow-600 text-yellow-500 hover:bg-yellow-600/10"
+                                            onClick={() => { setSelectedUser(user); setIsGrantProOpen(true); }}
+                                        >
+                                            <ShieldAlert className="w-3 h-3 mr-1" /> Dar Pro
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -205,6 +247,43 @@ export default function AdminUsersPage() {
                                 <Button variant="ghost" onClick={() => setIsAddCreditsOpen(false)} className="text-slate-400">Cancelar</Button>
                                 <Button className="bg-emerald-600 hover:bg-emerald-500 text-white" onClick={handleAddCredits}>
                                     Confirmar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* GRANT PRO DIALOG */}
+            {isGrantProOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md bg-slate-900 border border-yellow-700 rounded-lg shadow-xl p-6 animate-in zoom-in duration-200">
+                        <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5 text-yellow-500" /> Conceder Plano PRO
+                        </h2>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Usuário: <span className="text-white font-bold">{selectedUser?.full_name || selectedUser?.email}</span>
+                            <br />
+                            Plano Atual: <span className="text-yellow-400 font-bold uppercase">{selectedUser?.plan_type || 'free'}</span>
+                        </p>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-slate-400 uppercase">Duração (Dias)</label>
+                                <p className="text-[10px] text-slate-500 mb-1">O plano voltará para Free após esse período.</p>
+                                <Input
+                                    type="number"
+                                    placeholder="Ex: 30"
+                                    className="bg-black/50 border-slate-700 text-white mt-1"
+                                    value={proDays}
+                                    onChange={(e) => setProDays(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button variant="ghost" onClick={() => setIsGrantProOpen(false)} className="text-slate-400">Cancelar</Button>
+                                <Button className="bg-yellow-600 hover:bg-yellow-500 text-white" onClick={handleGrantPro}>
+                                    Conceder PRO
                                 </Button>
                             </div>
                         </div>
