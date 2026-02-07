@@ -15,10 +15,32 @@ export async function handleProActivation(userId: string, amount: number | undef
     console.log(`[Payment] Activating PRO for user ${userId}, Amount: ${amount}, Type: ${type}, PaymentID: ${paymentId}`);
     console.log(`[Payment] Using Service Key: ${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 5)}...`);
 
-    // 1. Calculate End Date
-    const endDate = new Date();
-    // Default 30 days for all paid plans currently, including test plan as per request
-    endDate.setDate(endDate.getDate() + 30);
+    // 1. Fetch current profile to determine start date logic
+    const { data: currentProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('plan_type, plan_expires_at, plan_started_at')
+        .eq('id', userId)
+        .single();
+
+    const now = new Date();
+    let startDate = now.toISOString();
+    let endDate = new Date();
+    endDate.setDate(endDate.getDate() + 30); // Default 30 days
+
+    // If already PRO and not expired, extend from current expiry or keep start date?
+    // User wants "date each one became pro".
+    // If active, keep start date. If expired, reset start date (new cycle).
+    if (currentProfile?.plan_type === 'pro' && currentProfile?.plan_expires_at) {
+        const currentExpiry = new Date(currentProfile.plan_expires_at);
+        if (currentExpiry > now) {
+            // Active subscription: Keep original start date
+            startDate = currentProfile.plan_started_at || startDate;
+            // Extend? Or just reset to 30 days from now?
+            // Usually monthly sub = next payment date. Let's set to 30 days from NOW for simplicity in MP manual links
+            // If it was recurrence, MP handles timing, but we verify payment here.
+            // Let's Just set End Date to Now + 30 days to be safe/simple.
+        }
+    }
 
     // 2. Upsert Profile (Idempotent)
     const { error: updateError } = await supabaseAdmin
@@ -26,8 +48,10 @@ export async function handleProActivation(userId: string, amount: number | undef
         .upsert({
             id: userId,
             plan_type: 'pro',
-            credits: 350,
-            plan_end_date: endDate.toISOString(),
+            credits: 350, // Reset/Set credits to 350? Or Add? Requirement unclear on credits. 
+            // Current implementation sets to 350. User didn't complain. Keeping it.
+            plan_started_at: startDate,
+            plan_expires_at: endDate.toISOString(),
             updated_at: new Date().toISOString()
         });
 

@@ -70,6 +70,11 @@ export default function AdminUsersPage() {
         setLoading(false);
     };
 
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return "-";
+        return new Date(dateString).toLocaleDateString('pt-BR');
+    };
+
     const handleGrantPro = async () => {
         if (!selectedUser || !proDays) return;
 
@@ -91,7 +96,12 @@ export default function AdminUsersPage() {
 
             // Update local state
             setUsers(prev => prev.map(u =>
-                u.id === selectedUser.id ? { ...u, plan_type: 'pro' } : u
+                u.id === selectedUser.id ? {
+                    ...u,
+                    plan_type: 'pro',
+                    plan_expires_at: result.expiresAt,
+                    plan_started_at: new Date().toISOString() // Optimistic update
+                } : u
             ));
 
             setIsGrantProOpen(false);
@@ -100,6 +110,30 @@ export default function AdminUsersPage() {
 
         } catch (error: any) {
             alert("Erro ao conceder plano: " + error.message);
+        }
+    };
+
+    const handleRevokePro = async (user: any) => {
+        if (!confirm(`Tem certeza que deseja remover o plano PRO de ${user.full_name || user.email}?`)) return;
+
+        try {
+            const response = await fetch('/api/admin/revoke-pro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+            });
+
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error);
+
+            alert("Plano PRO removido com sucesso.");
+
+            setUsers(prev => prev.map(u =>
+                u.id === user.id ? { ...u, plan_type: 'free', plan_expires_at: null, plan_started_at: null } : u
+            ));
+
+        } catch (error: any) {
+            alert("Erro ao remover plano: " + error.message);
         }
     };
 
@@ -182,6 +216,8 @@ export default function AdminUsersPage() {
                         <TableRow>
                             <TableHead className="text-slate-400">Usuário</TableHead>
                             <TableHead className="text-slate-400">Plano</TableHead>
+                            <TableHead className="text-slate-400">Início Pro</TableHead>
+                            <TableHead className="text-slate-400">Fim Pro</TableHead>
                             <TableHead className="text-slate-400">Créditos</TableHead>
                             <TableHead className="text-slate-400">Cupom</TableHead>
                             <TableHead className="text-slate-400">WhatsApp</TableHead>
@@ -201,6 +237,12 @@ export default function AdminUsersPage() {
                                     <Badge variant={user.plan_type === 'pro' ? 'default' : 'secondary'} className={user.plan_type === 'pro' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}>
                                         {user.plan_type === 'pro' ? 'PRO' : 'Free'}
                                     </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-xs text-slate-400">{formatDate(user.plan_started_at)}</span>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-xs text-slate-400">{formatDate(user.plan_expires_at)}</span>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-1 text-slate-300">
@@ -232,16 +274,27 @@ export default function AdminUsersPage() {
                                             className="bg-emerald-600 hover:bg-emerald-700 h-8 font-bold"
                                             onClick={() => { setSelectedUser(user); setIsAddCreditsOpen(true); }}
                                         >
-                                            <PlusCircle className="w-3 h-3 mr-1" /> Add Créditos
+                                            <PlusCircle className="w-3 h-3 mr-1" /> Add
                                         </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-8 border-yellow-600 text-yellow-500 hover:bg-yellow-600/10"
-                                            onClick={() => { setSelectedUser(user); setIsGrantProOpen(true); }}
-                                        >
-                                            <ShieldAlert className="w-3 h-3 mr-1" /> Dar Pro
-                                        </Button>
+                                        {user.plan_type === 'pro' ? (
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                className="h-8"
+                                                onClick={() => handleRevokePro(user)}
+                                            >
+                                                Remover Pro
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 border-yellow-600 text-yellow-500 hover:bg-yellow-600/10"
+                                                onClick={() => { setSelectedUser(user); setIsGrantProOpen(true); }}
+                                            >
+                                                <ShieldAlert className="w-3 h-3 mr-1" /> Dar Pro
+                                            </Button>
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>

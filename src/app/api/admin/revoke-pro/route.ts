@@ -16,25 +16,22 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { userId, days } = body;
+        const { userId } = body;
 
-        console.log(`Admin ${user.id} granting PRO to ${userId} for ${days} days`);
+        console.log(`Admin ${user.id} revoking PRO from ${userId}`);
 
-        if (!userId || !days) {
-            return NextResponse.json({ error: "Missing userId or days" }, { status: 400 });
+        if (!userId) {
+            return NextResponse.json({ error: "Missing userId" }, { status: 400 });
         }
 
-        // 2. Calculate Expiration
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + parseInt(days));
-
-        // 3. Update Profile
+        // 2. Update Profile to Free
+        // We clear valid dates to indicate no active plan.
         const { error } = await supabase
             .from('profiles')
             .update({
-                plan_type: 'pro',
-                plan_started_at: new Date().toISOString(),
-                plan_expires_at: expiryDate.toISOString()
+                plan_type: 'free',
+                plan_expires_at: null,
+                plan_started_at: null
             })
             .eq('id', userId);
 
@@ -44,12 +41,11 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: true,
-            newPlan: 'pro',
-            expiresAt: expiryDate.toISOString()
+            newPlan: 'free'
         });
 
     } catch (error: any) {
-        console.error("Error granting pro:", error);
+        console.error("Error revoking pro:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
