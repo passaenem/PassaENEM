@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Ticket, Loader2, Plus, Copy, Check, Trash2 } from "lucide-react";
+import { Ticket, Loader2, Plus, Copy, Check, Trash2, Edit2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -25,9 +25,61 @@ export default function AdminCouponsPage() {
 
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
+    // Edit State
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingCoupon, setEditingCoupon] = useState<any>(null);
+    const [editCode, setEditCode] = useState("");
+    const [editCredits, setEditCredits] = useState("");
+    const [editLimit, setEditLimit] = useState("");
+
     useEffect(() => {
         fetchCoupons();
     }, []);
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Tem certeza que deseja excluir este cupom?")) return;
+        try {
+            const res = await fetch(`/api/admin/coupons?id=${id}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Erro ao excluir");
+            fetchCoupons();
+        } catch (err) {
+            alert("Erro ao excluir cupom");
+        }
+    };
+
+    const openEdit = (coupon: any) => {
+        setEditingCoupon(coupon);
+        setEditCode(coupon.code);
+        setEditCredits(coupon.credits.toString());
+        setEditLimit(coupon.usage_limit?.toString() || "");
+        setIsEditOpen(true);
+    };
+
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreating(true);
+        try {
+            const res = await fetch("/api/admin/coupons", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: editingCoupon.id,
+                    code: editCode,
+                    credits: parseInt(editCredits),
+                    usage_limit: editLimit ? parseInt(editLimit) : ""
+                })
+            });
+
+            if (!res.ok) throw new Error("Erro ao editar");
+
+            setIsEditOpen(false);
+            fetchCoupons();
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setCreating(false);
+        }
+    };
 
     const fetchCoupons = async () => {
         setLoading(true);
@@ -203,10 +255,24 @@ export default function AdminCouponsPage() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            {/* Add Delete/Deactivate button logic later if needed */}
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-500 hover:text-red-400">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0 text-slate-500 hover:text-blue-400"
+                                                    onClick={() => openEdit(coupon)}
+                                                >
+                                                    <Edit2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0 text-slate-500 hover:text-red-400"
+                                                    onClick={() => handleDelete(coupon.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -215,6 +281,61 @@ export default function AdminCouponsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* EDIT DIALOG */}
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <DialogContent className="bg-slate-900 border-slate-800 text-white">
+                    <DialogHeader>
+                        <DialogTitle>Editar Cupom</DialogTitle>
+                    </DialogHeader>
+                    {editingCoupon && (
+                        <form onSubmit={handleEdit} className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-code">Código</Label>
+                                <Input
+                                    id="edit-code"
+                                    value={editCode}
+                                    onChange={(e) => setEditCode(e.target.value.toUpperCase())}
+                                    className="bg-slate-950 border-slate-700 uppercase"
+                                    required
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-credits">Créditos</Label>
+                                    <Input
+                                        id="edit-credits"
+                                        type="number"
+                                        value={editCredits}
+                                        onChange={(e) => setEditCredits(e.target.value)}
+                                        className="bg-slate-950 border-slate-700"
+                                        required
+                                        min="1"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-limit">Limite (Vazio = Infinito)</Label>
+                                    <Input
+                                        id="edit-limit"
+                                        type="number"
+                                        value={editLimit}
+                                        onChange={(e) => setEditLimit(e.target.value)}
+                                        placeholder="Opcional"
+                                        className="bg-slate-950 border-slate-700"
+                                        min="1"
+                                    />
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button type="submit" disabled={creating} className="bg-blue-600 hover:bg-blue-700">
+                                    {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar Alterações"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
+

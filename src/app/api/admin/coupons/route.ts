@@ -63,3 +63,63 @@ export async function POST(request: Request) {
 
     return NextResponse.json(data);
 }
+
+export async function DELETE(request: Request) {
+    const supabase = await createClient();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+        return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    }
+
+    // Auth check
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { error } = await supabase
+        .from("coupons")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+}
+
+export async function PUT(request: Request) {
+    const supabase = await createClient();
+    const body = await request.json();
+    const { id, code, credits, usage_limit, active } = body;
+
+    if (!id) {
+        return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    }
+
+    // Auth check
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const updates: any = {};
+    if (code) updates.code = code.toUpperCase();
+    if (credits) updates.credits = parseInt(credits);
+    if (usage_limit !== undefined) updates.usage_limit = usage_limit === "" ? null : parseInt(usage_limit);
+    if (active !== undefined) updates.active = active;
+
+    const { error } = await supabase
+        .from("coupons")
+        .update(updates)
+        .eq("id", id);
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+}
