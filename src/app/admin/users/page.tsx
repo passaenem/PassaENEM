@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Ensure Dialog exists or use inline
-import { Loader2, Search, PlusCircle, User, Zap, ShieldAlert, ArrowLeft } from "lucide-react";
+import { Loader2, Search, PlusCircle, User, Zap, ShieldAlert, ArrowLeft, Ticket } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 
 const ADMIN_ID = "426d48bb-fc97-4461-acc9-a8a59445b72d";
@@ -45,12 +45,27 @@ export default function AdminUsersPage() {
         setLoading(true);
         if (supabase) {
             // Fetch profiles
-            const { data, error } = await supabase
+            const { data: profiles, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (data) setUsers(data);
+            // Fetch coupon usages
+            const { data: usages } = await supabase
+                .from('coupon_usages')
+                .select('user_id, coupon:coupons(code)');
+
+            if (profiles) {
+                // Merge data
+                const merged = profiles.map(p => {
+                    const usage = usages?.find((u: any) => u.user_id === p.id);
+                    const couponData = usage?.coupon;
+                    // Handle case where coupon might be returned as an array or single object
+                    const couponCode = Array.isArray(couponData) ? couponData[0]?.code : (couponData as any)?.code;
+                    return { ...p, redeemed_coupon: couponCode };
+                });
+                setUsers(merged);
+            }
         }
         setLoading(false);
     };
@@ -168,6 +183,7 @@ export default function AdminUsersPage() {
                             <TableHead className="text-slate-400">Usuário</TableHead>
                             <TableHead className="text-slate-400">Plano</TableHead>
                             <TableHead className="text-slate-400">Créditos</TableHead>
+                            <TableHead className="text-slate-400">Cupom</TableHead>
                             <TableHead className="text-slate-400">WhatsApp</TableHead>
                             <TableHead className="text-slate-400">Ações</TableHead>
                         </TableRow>
@@ -191,6 +207,16 @@ export default function AdminUsersPage() {
                                         <Zap className="w-3 h-3 text-violet-400" />
                                         {user.credits}
                                     </div>
+                                </TableCell>
+                                <TableCell>
+                                    {user.redeemed_coupon ? (
+                                        <Badge variant="outline" className="border-violet-500/50 text-violet-400 bg-violet-500/10 flex w-fit items-center gap-1">
+                                            <Ticket className="w-3 h-3" />
+                                            {user.redeemed_coupon}
+                                        </Badge>
+                                    ) : (
+                                        <span className="text-xs text-slate-600">-</span>
+                                    )}
                                 </TableCell>
                                 <TableCell>
                                     {user.phone ? (

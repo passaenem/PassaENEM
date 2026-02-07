@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard, ShieldAlert, Users, PenTool, MessageSquareHeart, Calendar } from "lucide-react";
+import { LayoutDashboard, GraduationCap, Briefcase, History, Settings, Trophy, Banknote, CreditCard, ShieldAlert, Users, PenTool, MessageSquareHeart, Calendar, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -15,6 +15,7 @@ const navigation = [
     { name: "Redação", href: "/redacao", icon: PenTool },
     { name: "Minhas Redações", href: "/redacao/history", icon: History },
     { name: "Mural de Feedbacks", href: "/feedbacks", icon: MessageSquareHeart },
+    { name: "Cupons", href: "/dashboard/coupons", icon: Ticket },
     { name: "Comunidade", href: "https://chat.whatsapp.com/EbKOEBYCHvA0OgBbepywny?mode=gi_c", icon: Users },
     { name: "Configurações", href: "/configuracoes", icon: Settings },
 ];
@@ -96,8 +97,9 @@ export function Sidebar() {
     };
 
     return (
-        <div className="hidden md:flex h-screen w-64 flex-col justify-between border-r bg-card p-4">
-            <div>
+        <div className="hidden md:flex h-screen w-64 flex-col border-r bg-card">
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+
                 <div className="mb-8 flex items-center px-2">
                     <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-green-500 text-primary-foreground">
                         <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain" />
@@ -189,23 +191,35 @@ export function Sidebar() {
                             Gestão de Usuários
                         </Link>
                     )}
-                    {user && user.id === ADMIN_ID && (
+                    {user?.id === ADMIN_ID && (
                         <Link
                             href="/admin/subscriptions"
                             className={cn(
                                 "flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
-                                pathname === "/admin/subscriptions"
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                pathname === "/admin/subscriptions" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             )}
                         >
                             <CreditCard className={cn("mr-3 h-5 w-5", pathname === "/admin/subscriptions" ? "text-primary" : "text-muted-foreground")} />
                             Assinaturas (Admin)
                         </Link>
                     )}
+                    {user && user.id === ADMIN_ID && (
+                        <Link
+                            href="/admin/coupons"
+                            className={cn(
+                                "flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",
+                                pathname === "/admin/coupons"
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            )}
+                        >
+                            <Ticket className={cn("mr-3 h-5 w-5", pathname === "/admin/coupons" ? "text-primary" : "text-muted-foreground")} />
+                            Cupons (Admin)
+                        </Link>
+                    )}
                 </nav>
             </div>
-            <div className="px-2 pb-4 space-y-4">
+            <div className="p-4 border-t bg-card space-y-4">
                 {user ? (
                     <div className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg">
                         <div className="h-8 w-8 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold">

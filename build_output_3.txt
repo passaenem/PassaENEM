@@ -1,0 +1,79 @@
+
+> temp-app@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.5s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/49) ...
+  Generating static pages using 11 workers (12/49) 
+  Generating static pages using 11 workers (24/49) 
+  Generating static pages using 11 workers (36/49) 
+✓ Generating static pages using 11 workers (49/49) in 1735.7ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/challenges-management
+├ ○ /admin/coupons
+├ ○ /admin/create-challenge
+├ ○ /admin/debug-payment
+├ ○ /admin/official-exams
+├ ○ /admin/rewards
+├ ○ /admin/subscriptions
+├ ○ /admin/users
+├ ƒ /api/admin/coupons
+├ ƒ /api/admin/credits
+├ ƒ /api/admin/grant-pro
+├ ƒ /api/admin/health
+├ ƒ /api/admin/parse-exam
+├ ƒ /api/checkout
+├ ƒ /api/checkout/sync
+├ ƒ /api/coupons/redeem
+├ ƒ /api/cron/expire-plans
+├ ƒ /api/cron/renew-credits
+├ ƒ /api/cron/update-motivation
+├ ƒ /api/essay/correct
+├ ƒ /api/essay/theme
+├ ƒ /api/generate
+├ ƒ /api/motivation
+├ ƒ /api/motivation/view
+├ ƒ /api/schedule
+├ ƒ /api/webhook/mercadopago
+├ ƒ /auth/callback
+├ ○ /challenges
+├ ○ /configuracoes
+├ ○ /cronograma
+├ ○ /dashboard
+├ ○ /dashboard/coupons
+├ ○ /exam
+├ ○ /feedbacks
+├ ○ /generator/concurso
+├ ○ /generator/enem
+├ ○ /history
+├ ○ /login
+├ ○ /payment/failure
+├ ○ /payment/pending
+├ ○ /payment/success
+├ ○ /planos
+├ ○ /privacidade
+├ ○ /redacao
+├ ○ /redacao/history
+├ ƒ /redacao/history/[id]
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+└ ○ /termos
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
