@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, TrendingUp, Brain } from "lucide-react";
+import { CheckCircle, TrendingUp, Brain, Calendar, FileText, PenTool, Trophy, LayoutDashboard } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface PricingSectionProps {
@@ -48,7 +48,9 @@ export function PricingSection({ user }: PricingSectionProps) {
     return (
         <section id="pricing" className="py-20 bg-slate-900">
             <div className="container mx-auto px-4">
-                <h2 className="text-3xl font-bold text-center mb-16 text-white">Planos que cabem no seu bolso</h2>
+                <h2 className="text-3xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                    Planos Que Cabem no Seu Bolso
+                </h2>
 
                 <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
@@ -99,19 +101,27 @@ export function PricingSection({ user }: PricingSectionProps) {
                         <ul className="space-y-3 mb-8 flex-1 text-sm">
                             <li className="flex items-center gap-2 text-white">
                                 <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                <strong>350 Questões mensais*</strong>
+                                <strong>350 Créditos Mensais</strong>
                             </li>
                             <li className="flex items-center gap-2 text-white">
-                                <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                ENEM + Concursos
+                                <Calendar className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                Cronograma de Estudos Personalizado
                             </li>
                             <li className="flex items-center gap-2 text-white">
-                                <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                Sem fidelidade
+                                <FileText className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                Simulados Oficiais (ENEM) + IA
                             </li>
                             <li className="flex items-center gap-2 text-white">
-                                <CheckCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                                Ranking com Premiação
+                                <PenTool className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                Redação com Correção Detalhada
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <Trophy className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                Desafios com Premiação em Dinheiro
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <LayoutDashboard className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                                Dashboard de Desempenho Completo
                             </li>
                         </ul>
 
@@ -124,8 +134,6 @@ export function PricingSection({ user }: PricingSectionProps) {
                             </Button>
                         </div>
                     </div>
-
-
 
                     {/* Pro 6-Months Plan (Best Value) */}
                     <div className="p-6 rounded-2xl bg-gradient-to-b from-violet-900/40 to-slate-900 border border-violet-500 flex flex-col relative overflow-hidden group shadow-2xl shadow-violet-900/20 scale-105 z-10">
@@ -149,25 +157,37 @@ export function PricingSection({ user }: PricingSectionProps) {
                                 <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
                                     <CheckCircle className="w-3 h-3 text-violet-400" />
                                 </div>
-                                <strong>350 Questões mensais*</strong>
+                                <strong>350 Créditos Mensais</strong>
                             </li>
                             <li className="flex items-center gap-2 text-white">
                                 <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                    <CheckCircle className="w-3 h-3 text-violet-400" />
+                                    <Calendar className="w-3 h-3 text-violet-400" />
                                 </div>
-                                Acesso Total (ENEM + Concursos)
+                                Cronograma de Estudos Personalizado
                             </li>
                             <li className="flex items-center gap-2 text-white">
                                 <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                    <CheckCircle className="w-3 h-3 text-violet-400" />
+                                    <FileText className="w-3 h-3 text-violet-400" />
                                 </div>
-                                <span className="text-green-400 font-bold">Ganhe prêmios em dinheiro</span>
+                                Simulados Oficiais (ENEM) + IA
                             </li>
                             <li className="flex items-center gap-2 text-white">
                                 <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
-                                    <CheckCircle className="w-3 h-3 text-violet-400" />
+                                    <PenTool className="w-3 h-3 text-violet-400" />
                                 </div>
-                                Histórico Avançado
+                                Redação com Correção Detalhada
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                    <Trophy className="w-3 h-3 text-green-400" />
+                                </div>
+                                <span className="text-green-400 font-bold">Desafios com Premiação em Dinheiro</span>
+                            </li>
+                            <li className="flex items-center gap-2 text-white">
+                                <div className="w-5 h-5 rounded-full bg-violet-600/30 flex items-center justify-center flex-shrink-0">
+                                    <LayoutDashboard className="w-3 h-3 text-violet-400" />
+                                </div>
+                                Dashboard de Desempenho Completo
                             </li>
                         </ul>
 
