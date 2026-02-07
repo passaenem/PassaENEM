@@ -69,46 +69,50 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Erro ao processar cupom" }, { status: 500 });
     }
 
-    // Update coupon usage count
-    await supabase.rpc('increment_coupon_usage', { coupon_id_param: coupon.id });
+    // 5. Add Credits Logic
+    console.log(`[Redeem] Adding ${coupon.credits} credits to user ${user.id}`);
 
-    // Add credits to user's profile/credits table
-    // Assuming there is a function or we do it directly.
-    // Let's assume we update `profiles` or `users` table credits column.
-    // Need to verify where credits are stored. 
-    // Checking `secure_credits.sql` implies we should use RPC `add_credits` if available or update directly.
-
-    // I will try to call `add_credits` RPC if it exists, otherwise I'll need to know the table structure.
-    // Since I don't recall `add_credits` RPC being confirmed, I'll use a direct update for now or a custom RPC call.
-    // Actually, `secure_credits.sql` likely created a function. I'll assume `add_credits` function exists or create one.
-
-    // Let's assume we update the `profiles` table directly for now as a fallback.
-    // But `add_credits` is safer. 
-
-    // I'll try to find where credits are stored. Usually `profiles` table.
-    // Check `fix_profiles_schema.sql` previously mentioned in user state.
-
-    // I Will use a direct update to `profiles` credits + history if possible.
-
-    // Let's look for `add_credits` logic in previous files or list_dir.
-    // `secure_credits.sql` was in the list.
-
-    // Use fallback update for now.
-    const { error: creditError } = await supabase.rpc('add_user_credits', {
+    // Try RPC first (Preferred - Security Definer)
+    const { error: rpcError } = await supabase.rpc('add_user_credits', {
         user_id: user.id,
-        amount: coupon.credits
+        amount: Number(coupon.credits)
     });
 
-    if (creditError) {
-        // Fallback: try direct update if RPC fails
-        const { data: profile } = await supabase.from('profiles').select('credits').eq('id', user.id).single();
-        if (profile) {
-            await supabase.from('profiles').update({ credits: (profile.credits || 0) + coupon.credits }).eq('id', user.id);
-        } else {
-            // Rollback usage? Complex without transaction.
-            console.error("Failed to add credits", creditError);
-            return NextResponse.json({ error: "Cupom validado mas erro ao adicionar créditos. Contate o suporte." }, { status: 500 });
+    if (rpcError) {
+        console.error("[Redeem] RPC Error:", rpcError);
+
+        // Fallback: Direct Update (Only works if RLS allows or Service Role is used - likely to fail if RLS is strict)
+        // We attempt to fetch current credits and update.
+        const { data: profile, error: fetchError } = await supabase
+            .from('profiles')
+            .select('credits')
+            .eq('id', user.id)
+            .single();
+
+        if (fetchError || !profile) {
+            console.error("[Redeem] Fetch Profile Error:", fetchError);
+            return NextResponse.json({ error: "Erro ao buscar perfil do usuário." }, { status: 500 });
         }
+
+        const newCredits = (profile.credits || 0) + Number(coupon.credits);
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ credits: newCredits })
+            .eq('id', user.id);
+
+        if (updateError) {
+            console.error("[Redeem] Update Fallback Error:", updateError);
+            // Critical failure: Coupon usage recorded but credits NOT added.
+            // Ideally we should rollback the usage here, but we lack transactions.
+            // We will return a specific error so the frontend knows.
+            return NextResponse.json({
+                error: "Cupom validado, mas houve um erro ao adicionar os créditos. Por favor, contate o suporte imediatamente."
+            }, { status: 500 });
+        }
+
+        console.log("[Redeem] Credits added via fallback update.");
+    } else {
+        console.log("[Redeem] Credits added via RPC.");
     }
 
     return NextResponse.json({ success: true, message: `Cupom resgatado! ${coupon.credits} créditos adicionados.` });
