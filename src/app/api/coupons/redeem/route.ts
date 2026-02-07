@@ -109,7 +109,7 @@ export async function POST(request: Request) {
             // Ideally we should rollback the usage here, but we lack transactions.
             // We will return a specific error so the frontend knows.
             return NextResponse.json({
-                error: "Cupom validado, mas houve um erro ao adicionar os créditos. Por favor, contate o suporte imediatamente."
+                error: `Erro CRÍTICO: Cupom validado, mas falha ao creditar. RPC: ${rpcError.message || JSON.stringify(rpcError)}. Update: ${updateError.message || JSON.stringify(updateError)}. Contate suporte.`
             }, { status: 500 });
         }
 
