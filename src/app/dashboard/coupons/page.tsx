@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Ticket, Loader2, CheckCircle, AlertCircle } from "lucide-react";
@@ -13,6 +13,36 @@ export default function CouponsPage() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<{ type: 'success' | 'error', message: string } | null>(null);
     const router = useRouter();
+
+    const [history, setHistory] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetchHistory();
+    }, []);
+
+    const fetchHistory = async () => {
+        try {
+            // Need a new route for history or reuse existing?
+            // Let's assume we can fetch usages. 
+            // Better to create a server action or API. 
+            // For now, let's just fetch from a new endpoint or the user's usages.
+            // Wait, we don't have an endpoint for user Coupon History yet.
+            // I'll create one.
+
+            // Actually, we can just use the supabase client here if it's a client component, 
+            // BUT we need `createClientComponentClient` for that.
+            // Let's stick to an API route for consistency or use the server action pattern if established.
+            // The project uses API routes. I'll add GET to `/api/coupons/redeem` (or similar) to fetch history.
+
+            const res = await fetch("/api/coupons/history");
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch history");
+        }
+    };
 
     const handleRedeem = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,7 +66,18 @@ export default function CouponsPage() {
 
             setResult({ type: 'success', message: data.message });
             setCode("");
-            router.refresh(); // Update credits in sidebar
+
+            // Update history
+            fetchHistory();
+
+            // Force credit update in Sidebar (broadcast event?)
+            // Router refresh re-runs server components, but Sidebar is Client Component using Supabase subscription.
+            // The subscription should catch it. If not, maybe the trigger isn't firing on the right table/column?
+            router.refresh();
+
+            // Dispatch custom event to force sidebar update if subscription is slow
+            window.dispatchEvent(new Event('credits-updated'));
+
         } catch (error: any) {
             setResult({ type: 'error', message: error.message });
         } finally {
@@ -89,13 +130,31 @@ export default function CouponsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-slate-900 border-slate-800 opacity-60 pointer-events-none">
+                <Card className="bg-slate-900 border-slate-800">
                     <CardHeader>
                         <CardTitle className="text-white">Histórico de Cupons</CardTitle>
-                        <CardDescription>Em breve você verá seu histórico aqui.</CardDescription>
+                        <CardDescription>Veja seus cupons resgatados.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex items-center justify-center p-6 min-h-[150px]">
-                        <p className="text-slate-500 text-sm">Nenhum cupom utilizado recentemente.</p>
+                    <CardContent className="p-6 min-h-[150px]">
+                        {history.length === 0 ? (
+                            <div className="flex items-center justify-center h-full">
+                                <p className="text-slate-500 text-sm">Nenhum cupom utilizado recentemente.</p>
+                            </div>
+                        ) : (
+                            <ul className="space-y-3">
+                                {history.map((usage: any) => (
+                                    <li key={usage.id} className="flex justify-between items-center border-b border-slate-800 pb-2 last:border-0 last:pb-0">
+                                        <div>
+                                            <p className="font-bold text-white text-sm">{usage.coupon.code}</p>
+                                            <p className="text-xs text-slate-500">{new Date(usage.redeemed_at).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className="text-green-400 font-bold text-sm">
+                                            +{usage.coupon.credits} créditos
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </CardContent>
                 </Card>
             </div>

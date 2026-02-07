@@ -88,6 +88,26 @@ export function Sidebar() {
         }
     }, [user?.id]);
 
+    useEffect(() => {
+        const handleCreditsUpdate = () => {
+            // Force re-fetch logic slightly or rely on supabase realtime which should is already there.
+            // But to be sure, we can re-check:
+            if (user && supabase) {
+                supabase.from('profiles').select('credits, plan_type').eq('id', user.id).single().then(({ data }) => {
+                    if (data) {
+                        setUserCredits({
+                            credits: data.credits,
+                            plan: data.plan_type || 'free'
+                        });
+                    }
+                });
+            }
+        };
+
+        window.addEventListener('credits-updated', handleCreditsUpdate);
+        return () => window.removeEventListener('credits-updated', handleCreditsUpdate);
+    }, [user]);
+
     const handleLogout = async () => {
         if (supabase) {
             await supabase.auth.signOut();
