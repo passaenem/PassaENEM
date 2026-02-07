@@ -69,6 +69,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Erro ao processar cupom" }, { status: 500 });
     }
 
+    // Update coupon usage count
+    await supabase.rpc('increment_coupon_usage', { coupon_id_param: coupon.id });
+
     // 5. Add Credits Logic
     console.log(`[Redeem] Adding ${coupon.credits} credits to user ${user.id}`);
 
