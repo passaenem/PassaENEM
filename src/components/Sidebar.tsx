@@ -16,7 +16,6 @@ const navigation = [
     { name: "Minhas Redações", href: "/redacao/history", icon: History },
     { name: "Mural de Feedbacks", href: "/feedbacks", icon: MessageSquareHeart },
     { name: "Cupons", href: "/dashboard/coupons", icon: Ticket },
-    { name: "Comunidade", href: "https://chat.whatsapp.com/EbKOEBYCHvA0OgBbepywny?mode=gi_c", icon: Users },
     { name: "Configurações", href: "/configuracoes", icon: Settings },
 ];
 
@@ -308,7 +307,8 @@ export function Sidebar() {
                                     CRÉDITOS
                                 </p>
                                 <p className="text-xs font-mono font-bold text-white">
-                                    {userCredits.credits}/{userCredits.plan === 'pro' ? PRO_PLAN_LIMIT : FREE_PLAN_LIMIT}
+                                    {/* Display only current credits */}
+                                    {userCredits.credits}
                                 </p>
                             </div>
                         </>
