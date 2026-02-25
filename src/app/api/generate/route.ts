@@ -64,6 +64,13 @@ DIRETRIZES OBRIGATÓRIAS:
 - Se possível, adapte questões clássicas para garantir fidelidade ao estilo de cobrança.
 - Priorize os temas "queridinhos" da banca (aqueles que sempre caem).
 - O enunciado deve ser rico e contextualizado, idêntico ao da prova real.
+
+2. DISTRIBUIÇÃO EQUILIBRADA DAS RESPOSTAS CORRETAS (OBRIGATÓRIO)
+- Ao gerar um conjunto de questões, distribua as alternativas corretas de forma BALANCEADA entre as letras A, B, C, D e E.
+- NUNCA concentre a maioria das respostas corretas em uma única letra.
+- A distribuição deve ser natural, sem padrão previsível (ex: não sequencial A, B, C, D...).
+- REGRA FINAL OBRIGATÓRIA: Antes de retornar o JSON, faça uma VERIFICAÇÃO INTERNA contando quantas vezes cada letra aparece como "alternativa_correta". Se alguma letra representar mais de 40% das respostas do simulado, REORGANIZE as questões para equilibrar a distribuição.
+- Exemplo de distribuição saudável para 10 questões: A(2), B(2), C(2), D(2), E(2). Para 5 questões: cada letra pode aparecer 1 vez. Variações são aceitas, mas sem dominância.
 `;
 
         const explanationRules = `
@@ -244,7 +251,62 @@ JSON ESPERADO:
         }
 
         // Adapt strict JSON schema to our Frontend interface
-        const adaptedQuestions = parsedData.questoes.map((q: any) => {
+        const rawQuestions = parsedData.questoes.map((q: any) => ({
+            rawData: q,
+            alternativa_correta: q.alternativa_correta as string
+        }));
+
+        // ── VERIFICAÇÃO DE DISTRIBUIÇÃO BALANCEADA ────────────────────────────────
+        // Conta a frequência de cada letra correta
+        const letterCount: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+        for (const rq of rawQuestions) {
+            const letter = rq.alternativa_correta?.toUpperCase();
+            if (letter && letter in letterCount) letterCount[letter]++;
+        }
+
+        const totalQ = rawQuestions.length;
+        const maxAllowed = Math.ceil(totalQ * 0.45); // Nenhuma letra pode ter mais de 45% das respostas
+
+        // Shuffle das alternativas para equilibrar caso haja desequilíbrio
+        const dominantLetter = Object.entries(letterCount).find(([, count]) => count > maxAllowed)?.[0];
+
+        if (dominantLetter) {
+            console.warn(`[Balance] Letra "${dominantLetter}" concentra ${letterCount[dominantLetter]}/${totalQ} respostas. Rebalanceando...`);
+
+            // Para cada questão onde a letra dominante é correta (exceto algumas),
+            // rotacionamos as alternativas para mover a correta para outra posição.
+            const optionKeys = ["A", "B", "C", "D", "E"];
+            let fixCount = 0;
+            const maxFixes = letterCount[dominantLetter] - Math.floor(totalQ / optionKeys.length) - 1;
+
+            for (const rq of rawQuestions) {
+                if (fixCount >= maxFixes) break;
+                if (rq.alternativa_correta?.toUpperCase() !== dominantLetter) continue;
+
+                // Encontra uma letra sub-representada para ser a nova correta
+                const targetLetter = optionKeys.find(
+                    k => k !== dominantLetter && letterCount[k] < Math.ceil(totalQ / optionKeys.length)
+                );
+                if (!targetLetter) break;
+
+                // Troca os textos das alternativas entre dominantLetter e targetLetter
+                const q = rq.rawData;
+                const temp = q.alternativas[dominantLetter];
+                q.alternativas[dominantLetter] = q.alternativas[targetLetter];
+                q.alternativas[targetLetter] = temp;
+                q.alternativa_correta = targetLetter;
+                rq.alternativa_correta = targetLetter;
+
+                letterCount[dominantLetter]--;
+                letterCount[targetLetter]++;
+                fixCount++;
+            }
+
+            console.log(`[Balance] Distribuição final:`, letterCount);
+        }
+        // ─────────────────────────────────────────────────────────────────────────
+
+        const adaptedQuestions = rawQuestions.map(({ rawData: q }) => {
             const optionKeys = ["A", "B", "C", "D", "E"];
             const optionsArray = optionKeys.map(key => q.alternativas[key]);
             const correctIndex = optionKeys.indexOf(q.alternativa_correta);
@@ -259,7 +321,7 @@ JSON ESPERADO:
                 difficulty: q.dificuldade,
                 topic: params.tema || params.disciplina,
                 context: q.contexto || undefined,
-                pontuacao: q.pontuacao || Math.floor(Math.random() * 4 + 1) * 100 // Fallback random 100-400
+                pontuacao: q.pontuacao || Math.floor(Math.random() * 4 + 1) * 100
             };
         });
 
