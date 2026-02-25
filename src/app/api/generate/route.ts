@@ -306,7 +306,7 @@ JSON ESPERADO:
         }
         // ─────────────────────────────────────────────────────────────────────────
 
-        const adaptedQuestions = rawQuestions.map(({ rawData: q }) => {
+        const adaptedQuestions = rawQuestions.map(({ rawData: q }: { rawData: any }) => {
             const optionKeys = ["A", "B", "C", "D", "E"];
             const optionsArray = optionKeys.map(key => q.alternativas[key]);
             const correctIndex = optionKeys.indexOf(q.alternativa_correta);
