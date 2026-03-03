@@ -121,7 +121,8 @@ Retorne APENAS este JSON:
 Gere para ${daysPerWeek} dias. Respeite ${hoursPerDay}/dia. Distribua as matérias obrigatórias ao longo dos dias.
 `;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const options = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -130,10 +131,26 @@ Gere para ${daysPerWeek} dias. Respeite ${hoursPerDay}/dia. Distribua as matéri
           response_mime_type: "application/json"
         }
       })
-    });
+    };
 
-    if (!response.ok) {
-      throw new Error(`Gemini API Error: ${response.status}`);
+    let response;
+    let retries = 3;
+    for (let i = 0; i < retries; i++) {
+      response = await fetch(url, options);
+      if (response.status === 429) {
+        console.warn(`[Schedule] Gemini 429 Rate Limit. Retrying in ${Math.pow(2, i)}s...`);
+        await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000 + 500));
+        continue;
+      }
+      break;
+    }
+
+    if (!response || !response.ok) {
+      const errText = response ? await response.text() : "Sem resposta";
+      if (response?.status === 429) {
+        throw new Error("Limite de uso atingido. Aguarde cerca de 30 segundos e tente novamente.");
+      }
+      throw new Error(`Gemini API Error: ${response?.status} - ${errText}`);
     }
 
     const data = await response.json();
