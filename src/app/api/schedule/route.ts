@@ -121,7 +121,7 @@ Retorne APENAS este JSON:
 Gere para ${daysPerWeek} dias. Respeite ${hoursPerDay}/dia. Distribua as matérias obrigatórias ao longo dos dias.
 `;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const options = {
       method: "POST",
       headers: { "Content-Type": "application/json" },

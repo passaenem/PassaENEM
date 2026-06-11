@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 export async function POST(req: NextRequest) {
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `Gere um tema de redação no estilo ENEM. 
         IMPORTANTE: O tema deve ser diferente dos comuns (como persistência da violência, estigmas mentais, etc) e focar em assuntos atuais e relevantes de 2024/2026. Tente buscar algo inédito e instigante.
